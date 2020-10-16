@@ -68,7 +68,7 @@ services:
        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
 
    jumphost:
-      image: ishaq11/jumhost1
+      image: cloudcix/jumphost:0.0
       container_name: jumphost
       ports
         - "5901:5901"
