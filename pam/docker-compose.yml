@@ -1,0 +1,75 @@
+version: '3'
+    
+services:
+   pgsqlpam:
+     image: cloudcix/pgsqlpam:0.0
+     container_name: pgsqlpam
+     environment:
+       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#     volumes:
+#            - /var/lib/postgresql:/var/lib/postgresql/data/
+            
+   pam:
+     image: cloudcix/pam:0.0
+     container_name: pam
+     depends_on:
+       - pgsqlpam
+     environment:
+       - PGSQLPAM_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       
+     ports:
+           - "80:80"
+       
+   mysql:
+    image: mysql
+    container_name: mysql
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=librenms
+      - MYSQL_USER=librenms
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+                
+   librenms:
+      image: librenms/librenms
+      container_name: librenms
+      ports:
+         - "8000:8000"
+      depends_on:
+         - mysql
+      environment:
+        - DB_HOST=mysql
+        - DB_NAME=librenms
+        - DB_USER=librenms
+        - DB_PASSWORD=${MYSQL_PASSWORD}
+   
+   radius:
+      image: freeradius/freeradius-server
+      container_name: radius
+      
+   apacheds:
+      image: httpd:latest
+      container_name: apacheds
+      ports:
+        - "10389:80"
+        
+   pgadmin:
+      image: dpage/pgadmin4
+      container_name: pgadmin
+      ports:
+        - "5432:80"
+      environment:
+       - PGADMIN_DEFAULT_EMAIL=admin@postgres
+       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+
+   jumphost:
+      image: ishaq11/jumhost1
+      container_name: jumphost
+      ports
+        - "5901:5901"
+      entrypoint: tail -f /dev/null

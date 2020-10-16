@@ -1,0 +1,93 @@
+version: '3'
+services:
+  membershipldap:
+    image: ubuntu
+    container_name: membershipldap
+    entrypoint: tail -f /dev/null
+
+  membership:
+    image: cloudcix/membership:0.3
+    container_name: membership
+    environment:
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
+       - LDAP_PASSWORD=${LDAP_PASSWORD}
+  otp:
+    image: cloudcix/otp:0.4
+    container_name: otp
+    environment:
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQLTOTP_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+
+  membershipcron:
+    image: cloudcix/membershipcron:0.1
+    container_name: membershipcron
+    environment:
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
+       - LDAP_PASSWORD=${LDAP_PASSWORD}
+    
+  iaas:
+    image: cloudcix/iaas:0.2
+    container_name: iaas
+    environment:
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+    
+  appmanager:
+    image: cloudcix/appmanager:0.0
+    container_name: appmanager
+    environment:
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       
+  pgsql:
+    image: cloudcix/pgsql:0.0
+    container_name: pgsql
+    environment:
+       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+       
+  pgsqltotp:
+    image: cloudcix/pgsqltotp:0.0
+    container_name: pgsqltotp
+    environment:
+       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  cop:
+    image: cloudcix/cop:0.0
+    container_name: cop
+    ports:
+      - "80:80"
+      
+  apache:
+     image: httpd:latest
+     container_name: apache
+     
