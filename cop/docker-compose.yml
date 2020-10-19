@@ -85,9 +85,12 @@ services:
     image: cloudcix/cop:0.0
     container_name: cop
     ports:
-      - "80:80"
+      - "${PMS3}:80:80"
+      - "${PMS3}:443:443"
       
   apache:
      image: httpd:latest
      container_name: apache
-     
+     ports:
+      - "${PMS4}:80:80"
+      - "${PMS4}:443:443"
