@@ -73,3 +73,7 @@ services:
       ports
         - "5901:5901"
       entrypoint: tail -f /dev/null
+      
+   ldap:
+      image: osixia/openldap
+      container_name: ldap
