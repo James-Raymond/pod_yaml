@@ -31,9 +31,9 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
 
-  membershipcron:
+  user_expiration_cron:
     image: cloudcix/membershipcron:0.1
-    container_name: membershipcron
+    container_name: user_expiration_cron
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
@@ -44,6 +44,7 @@ services:
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
+    command: ['user_expiration_reminders']
     
   iaas:
     image: cloudcix/iaas:0.3
