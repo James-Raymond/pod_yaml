@@ -46,7 +46,7 @@ services:
        - LDAP_PASSWORD=${LDAP_PASSWORD}
     
   iaas:
-    image: cloudcix/iaas:0.2
+    image: cloudcix/iaas:0.3
     container_name: iaas
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
