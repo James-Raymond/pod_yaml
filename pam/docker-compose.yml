@@ -70,7 +70,7 @@ services:
    jumphost:
       image: cloudcix/jumphost:0.0
       container_name: jumphost
-      ports
+      ports:
         - "5901:5901"
       entrypoint: tail -f /dev/null
       
