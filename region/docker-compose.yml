@@ -7,24 +7,35 @@ services:
     environment:
        - NETWORK_PASSWORD=${NETWORK_PASSWORD}
        - COP_NAME=${COP_NAME}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+    volumes:
+       - /home/administrator/celerybeat:/opt/robot/celerybeat
 
-  flower:
-    image: ubuntu
-    container_name: flower
-    entrypoint: tail -f /dev/null
-    
+  robotworker:
+    image: cloudcix/robot:0.0
+    container_name: robotworker
+    environment:
+       - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+       - COP_NAME=${COP_NAME}
+       - POD_NAME=${POD_NAME}
+       - ORGANIZATION=${ORGANIZATION}
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+     volumes:
+          - /mnt:/mnt
+
   rabbitmq:
     image: rabbitmq
     container_name: rabbitmq
     hostname: rabbitmq
     
-
-  robotworker1:
-    image: ubuntu
-    container_name: robotworker1
-    entrypoint: tail -f /dev/null
-    
-  robotworker2:
-    image: ubuntu
-    container_name: robotworker2
-    entrypoint: tail -f /dev/null
+  flower:
+    image: mher/flower
+    container_name: flower
+    ports:
+      - "${PMS6}:5555:5555"
