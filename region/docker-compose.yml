@@ -36,6 +36,7 @@ services:
     
   flower:
     image: mher/flower
-    container_name: flower
+    container_name: flowerregion
     ports:
       - "${PMS6}:5555:5555"
+      - "[${IP6}6002:4]:5555:5555"
