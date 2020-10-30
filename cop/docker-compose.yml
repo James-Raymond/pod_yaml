@@ -18,8 +18,8 @@ services:
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
     ports:
-        - "[${IP6}4004:1]:80:80"
-        - "[${IP6}4004:1]:443:443"
+        - "${IP6}4004:1:80:80"
+        - "${IP6}4004:1:443:443"
 
   otp:
     image: cloudcix/otp:0.4
@@ -34,8 +34,8 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     ports:
-        - "[${IP6}4004:2]:80:80"
-        - "[${IP6}4004:2]:443:443"
+        - "${IP6}4004:2:80:80"
+        - "${IP6}4004:2:443:443"
         
   user_expiration_cron:
     image: cloudcix/membershipcron:0.1
@@ -64,8 +64,8 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     ports:
-        - "[${IP6}4004:3]:80:80"
-        - "[${IP6}4004:3]:443:443"
+        - "${IP6}4004:3:80:80"
+        - "${IP6}4004:3:443:443"
         
   appmanager:
     image: cloudcix/appmanager:0.0
@@ -79,8 +79,8 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     ports:
-        - "[${IP6}4004:4]:80:80"
-        - "[${IP6}4004:4]:443:443"
+        - "${IP6}4004:4:80:80"
+        - "${IP6}4004:4:443:443"
         
   pgsql:
     image: cloudcix/pgsql:0.0
@@ -111,8 +111,8 @@ services:
     ports:
       - "${PMS5}:80:80"
       - "${PMS5}:443:443"
-      - "[${IP6}5002:3]:80:80"
-      - "[${IP6}5002:3]:443:443"
+      - "${IP6}5002:3:80:80"
+      - "${IP6}5002:3:443:443"
   
   apache:
      image: httpd:latest
@@ -126,14 +126,14 @@ services:
       container_name: apacheds
       ports:
         - "${PMS5}:10389:80"
-        - "[${IP6}5002:2]:10389:10389"
+        - "${IP6}5002:2:10389:10389"
         
   pgadmin:
       image: dpage/pgadmin4
       container_name: pgadmin
       ports:
         - "${PMS5}:5432:80"
-        - "[${IP6}5002:1]:5432:80"
+        - "${IP6}5002:1:5432:80"
 
       environment:
         - PGADMIN_DEFAULT_EMAIL=admin@postgres
