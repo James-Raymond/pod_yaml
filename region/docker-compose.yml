@@ -26,8 +26,8 @@ services:
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-     volumes:
-          - /mnt:/mnt
+    volumes:
+       - /mnt:/mnt
 
   rabbitmq:
     image: rabbitmq
