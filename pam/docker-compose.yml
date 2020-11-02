@@ -10,18 +10,13 @@ services:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
             
    pam:
-     image: cloudcix/pam:0.1
+     image: cloudcix/pam:0.4
      container_name: pam
      depends_on:
        - pgsqlpam
      environment:
        - PGSQLPAM_PASSWORD=${POSTGRES_PASSWORD}
-       - POD_SECRET_KEY=${POD_SECRET_KEY}
-       - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
-       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
-       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
-       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - PAM_SECRET_KEY=${POD_SECRET_KEY}
      ports:
        - "80:80"
        
