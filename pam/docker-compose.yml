@@ -10,7 +10,7 @@ services:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
             
    pam:
-     image: cloudcix/pam:0.0
+     image: cloudcix/pam:0.1
      container_name: pam
      depends_on:
        - pgsqlpam
