@@ -2,7 +2,7 @@ version: '3'
 
 services:
   robot:
-    image: cloudcix/robot:0.0
+    image: cloudcix/robot:0.1
     container_name: robot
     environment:
        - NETWORK_PASSWORD=${NETWORK_PASSWORD}
@@ -14,9 +14,10 @@ services:
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     volumes:
        - /home/administrator/celerybeat:/opt/robot/celerybeat
+    entrypoint: supervisord
 
   robotworker:
-    image: cloudcix/robot:0.0
+    image: cloudcix/robot:0.1
     container_name: robotworker
     environment:
        - NETWORK_PASSWORD=${NETWORK_PASSWORD}
@@ -27,7 +28,8 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     volumes:
-       - /mnt:/mnt
+      - /mnt:/mnt
+    entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
   rabbitmq:
     image: rabbitmq
