@@ -35,7 +35,7 @@ services:
     hostname: rabbitmq
     
   flower:
-    image: mher/flower
+    image: mher/flower:0.9.5
     container_name: flowerregion
     ports:
       - "${PMS6}:5555:5555"
