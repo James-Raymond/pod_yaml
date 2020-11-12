@@ -18,7 +18,7 @@ services:
        - PGSQLPAM_PASSWORD=${POSTGRES_PASSWORD}
        - PAM_SECRET_KEY=${POD_SECRET_KEY}
      ports:
-       - "80:80"
+       - "10.255.14.2:80:80"
        
    mysql:
     image: mysql
@@ -33,7 +33,7 @@ services:
       image: librenms/librenms
       container_name: librenms
       ports:
-         - "8000:8000"
+         - "10.255.14.4:8000:8000"
       depends_on:
          - mysql
       environment:
@@ -71,6 +71,9 @@ services:
       container_name: jumphost
       ports:
         - "5901:5901"
+        - "5901:5901"
+        - "10.255.14.5:22:22"
+        - "10.255.14.5:5901:5901"
       entrypoint: tail -f /dev/null
       
    ldap:

@@ -42,3 +42,4 @@ services:
     ports:
       - "${PMS6}:5555:5555"
       - "${IP6}6002:4:5555:5555"
+    entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
