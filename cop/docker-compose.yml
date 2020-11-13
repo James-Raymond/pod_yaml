@@ -20,6 +20,9 @@ services:
     ports:
         - "${IP6}4004:1:80:80"
         - "${IP6}4004:1:443:443"
+    volumes:
+       - /var/private.pem:/application_framework/private-key.rsa
+       - /var/public.pem:/application_framework/public_key.rsa
 
   otp:
     image: cloudcix/otp:0.4
@@ -36,6 +39,8 @@ services:
     ports:
         - "${IP6}4004:2:80:80"
         - "${IP6}4004:2:443:443"
+    volumes:
+       - /var/public.pem:/application_framework/public_key.rsa
         
   user_expiration_cron:
     image: cloudcix/membershipcron:0.1
@@ -66,6 +71,8 @@ services:
     ports:
         - "${IP6}4004:3:80:80"
         - "${IP6}4004:3:443:443"
+    volumes:
+       - /var/public.pem:/application_framework/public_key.rsa
         
   appmanager:
     image: cloudcix/appmanager:0.0
@@ -81,6 +88,8 @@ services:
     ports:
         - "${IP6}4004:4:80:80"
         - "${IP6}4004:4:443:443"
+    volumes:
+       - /var/public.pem:/application_framework/public_key.rsa
         
   pgsql:
     image: cloudcix/pgsql:0.0
@@ -113,6 +122,8 @@ services:
       - "${PMS5}:443:443"
       - "${IP6}5002:3:80:80"
       - "${IP6}5002:3:443:443"
+    volumes:
+       - /var/public.pem:/application_framework/public_key.rsa
   
   apache:
      image: httpd:latest
@@ -134,7 +145,6 @@ services:
       ports:
         - "${PMS5}:5432:80"
         - "${IP6}5002:1:5432:80"
-
       environment:
         - PGADMIN_DEFAULT_EMAIL=admin@postgres
         - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
