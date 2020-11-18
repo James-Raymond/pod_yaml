@@ -23,6 +23,8 @@ services:
     volumes:
        - /var/private.pem:/application_framework/private-key.rsa
        - /var/public.pem:/application_framework/public_key.rsa
+    depends_on:
+        - pgsql
 
   otp:
     image: cloudcix/otp:0.4
@@ -41,6 +43,8 @@ services:
         - "${IP6}4004:2:443:443"
     volumes:
        - /var/public.pem:/application_framework/public_key.rsa
+    depends_on:
+        - pgsql
         
   user_expiration_cron:
     image: cloudcix/membershipcron:0.1
@@ -73,6 +77,8 @@ services:
         - "${IP6}4004:3:443:443"
     volumes:
        - /var/public.pem:/application_framework/public_key.rsa
+    depends_on:
+        - pgsql
         
   appmanager:
     image: cloudcix/appmanager:0.0
@@ -90,6 +96,8 @@ services:
         - "${IP6}4004:4:443:443"
     volumes:
        - /var/public.pem:/application_framework/public_key.rsa
+    depends_on:
+        - pgsql
         
   pgsql:
     image: cloudcix/pgsql:0.0
@@ -126,18 +134,29 @@ services:
        - /var/public.pem:/application_framework/public_key.rsa
   
   apache:
-     image: httpd:latest
-     container_name: apache
-     ports:
-      - "${PMS4}:80:80"
-      - "${PMS4}:443:443"
+    image: cloudcix/apiproxy:0.0
+    container_name: apiproxy
+    environment:
+        - ADMIN_EMAIL=${ADMIN_EMAIL}
+        - ORGANISATION=${ORGANIZATION}
+        - POD_NAME=${POD_NAME}
+    ports:
+        - "${PMS4}:80:80"
+        - "${PMS4}:443:443"
+    volumes:
+       - type: volume
+         source: letsencrypt
+         target: /etc/letsencrypt
+         volume: 
+           nocopy: true
+
       
   apacheds:
-      image: tgbyte/apacheds:latest
-      container_name: apacheds
-      ports:
-        - "${PMS5}:10389:80"
-        - "${IP6}5002:2:10389:10389"
+    image: tgbyte/apacheds:latest
+    container_name: apacheds
+    ports:
+      - "${PMS5}:10389:80"
+      - "${IP6}5002:2:10389:10389"
         
   pgadmin:
       image: dpage/pgadmin4
@@ -148,4 +167,8 @@ services:
       environment:
         - PGADMIN_DEFAULT_EMAIL=admin@postgres
         - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      depends_on:
+        - pgsql
 
+volumes:
+    letsencrypt:
