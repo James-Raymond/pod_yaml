@@ -5,7 +5,7 @@ services:
     container_name: membershipldap
 
   membership:
-    image: cloudcix/membership:0.3
+    image: cloudcix/membership:latest
     container_name: membership
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
@@ -27,7 +27,7 @@ services:
         - pgsql
 
   otp:
-    image: cloudcix/otp:0.4
+    image: cloudcix/otp:latest
     container_name: otp
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
@@ -47,7 +47,7 @@ services:
         - pgsql
         
   user_expiration_cron:
-    image: cloudcix/membershipcron:0.1
+    image: cloudcix/membershipcron:latest
     container_name: user_expiration_cron
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
@@ -62,7 +62,7 @@ services:
     command: ['user_expiration_reminders']
     
   iaas:
-    image: cloudcix/iaas:0.3
+    image: cloudcix/iaas:latest
     container_name: iaas
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
@@ -81,7 +81,7 @@ services:
         - pgsql
         
   appmanager:
-    image: cloudcix/appmanager:0.0
+    image: cloudcix/appmanager:latest
     container_name: appmanager
     environment:
        - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
@@ -131,10 +131,10 @@ services:
       - "${IP6}5002:3:80:80"
       - "${IP6}5002:3:443:443"
     volumes:
-       - /var/public.pem:/application_framework/public-key.rsa
+       - /var/public.pem:/app_framework/system_conf/public-key.rsa
   
   apache:
-    image: cloudcix/apiproxy:0.0
+    image: cloudcix/apiproxy:latest
     container_name: apiproxy
     environment:
         - ADMIN_EMAIL=${ADMIN_EMAIL}
