@@ -22,7 +22,7 @@ services:
         - "${IP6}4004:1:443:443"
     volumes:
        - /var/private.pem:/application_framework/private-key.rsa
-       - /var/public.pem:/application_framework/public_key.rsa
+       - /var/public.pem:/application_framework/public-key.rsa
     depends_on:
         - pgsql
 
@@ -42,7 +42,7 @@ services:
         - "${IP6}4004:2:80:80"
         - "${IP6}4004:2:443:443"
     volumes:
-       - /var/public.pem:/application_framework/public_key.rsa
+       - /var/public.pem:/application_framework/public-key.rsa
     depends_on:
         - pgsql
         
@@ -76,7 +76,7 @@ services:
         - "${IP6}4004:3:80:80"
         - "${IP6}4004:3:443:443"
     volumes:
-       - /var/public.pem:/application_framework/public_key.rsa
+       - /var/public.pem:/application_framework/public-key.rsa
     depends_on:
         - pgsql
         
@@ -95,7 +95,7 @@ services:
         - "${IP6}4004:4:80:80"
         - "${IP6}4004:4:443:443"
     volumes:
-       - /var/public.pem:/application_framework/public_key.rsa
+       - /var/public.pem:/application_framework/public-key.rsa
     depends_on:
         - pgsql
         
@@ -131,7 +131,7 @@ services:
       - "${IP6}5002:3:80:80"
       - "${IP6}5002:3:443:443"
     volumes:
-       - /var/public.pem:/application_framework/public_key.rsa
+       - /var/public.pem:/application_framework/public-key.rsa
   
   apache:
     image: cloudcix/apiproxy:0.0
