@@ -116,7 +116,7 @@ services:
        - /var/lib/pgsqltotp:/var/lib/postgresql/data/
 
   cop:
-    image: cloudcix/cop:0.0
+    image: cloudcix/cop:latest
     container_name: cop
     environment:
        - POD_SECRET_KEY=${POD_SECRET_KEY}
