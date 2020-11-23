@@ -28,7 +28,7 @@ services:
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
     volumes:
-      - /var/lib/libvirt/robot-drive:/mnt/images
+      - /var/lib/robot:/mnt/images
       - /var/private.pem:~/.ssh/private-key.rsa
       - /var/public.pem:~/.ssh/public_key.rsa
     entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
