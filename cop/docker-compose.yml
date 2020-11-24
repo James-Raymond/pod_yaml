@@ -178,6 +178,28 @@ services:
         - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       depends_on:
         - pgsql
+   
+   seed_pgsql:
+    image: cloudcix/seed:latest
+    container_name: seed_pgsql
+    environment:
+       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
+       - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - ORGANIZATION=${ORGANIZATION}
+       - POD_NAME=${POD_NAME}
+       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
+    restart: on-failure
+    depends_on:
+        - pgsql
+        - membership
+        - membershipldap
+        - appmanager
+        - iaas
+        - otp
 
 volumes:
     letsencrypt:
