@@ -17,12 +17,14 @@ services:
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - RELEASE=stable
     ports:
         - "${IP6}4004:1:80:80"
         - "${IP6}4004:1:443:443"
     volumes:
        - /var/private.pem:/application_framework/private-key.rsa
        - /var/public.pem:/application_framework/public-key.rsa
+    restart: on-failure
     depends_on:
         - pgsql
 
@@ -38,11 +40,13 @@ services:
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - RELEASE=stable
     ports:
         - "${IP6}4004:2:80:80"
         - "${IP6}4004:2:443:443"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
+    restart: on-failure
     depends_on:
         - pgsql
         
@@ -59,6 +63,7 @@ services:
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - RELEASE=stable
     command: ['user_expiration_reminders']
     
   iaas:
@@ -72,11 +77,13 @@ services:
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - RELEASE=stable
     ports:
         - "${IP6}4004:3:80:80"
         - "${IP6}4004:3:443:443"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
+    restart: on-failure
     depends_on:
         - pgsql
         
@@ -91,11 +98,13 @@ services:
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - RELEASE=stable
     ports:
         - "${IP6}4004:4:80:80"
         - "${IP6}4004:4:443:443"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
+    restart: on-failure
     depends_on:
         - pgsql
         
