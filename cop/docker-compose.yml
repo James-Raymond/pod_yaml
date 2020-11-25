@@ -27,6 +27,7 @@ services:
     restart: on-failure
     depends_on:
         - pgsql
+        - membershipldap
 
   otp:
     image: cloudcix/otp:latest
