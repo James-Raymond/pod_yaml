@@ -4,19 +4,44 @@ services:
     image: osixia/openldap
     container_name: membershipldap
 
+  pgsql:
+    image: cloudcix/pgsql:0.0
+    container_name: pgsql
+    environment:
+       - POSTGRES_PASSWORD=${PGSQL_PASSWORD}
+    volumes:
+       - /var/lib/pgsql:/var/lib/postgresql/data/
+       
+  pgsqltotp:
+    image: cloudcix/pgsqltotp:0.0
+    container_name: pgsqltotp
+    environment:
+       - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
+    volumes:
+       - /var/lib/pgsqltotp:/var/lib/postgresql/data/
+
   membership:
     image: cloudcix/membership:latest
     container_name: membership
     environment:
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - SUPER_USERS=${SUPER_USERS}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     ports:
         - "${IP6}4004:1:80:80"
@@ -33,14 +58,22 @@ services:
     image: cloudcix/otp:latest
     container_name: otp
     environment:
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQLTOTP_USER=${PGSQLTOTP_USER}
        - PGSQLTOTP_PASSWORD=${PGSQLTOTP_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - SUPER_USER_IDS=${SUPER_USER_IDS}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     ports:
         - "${IP6}4004:2:80:80"
@@ -49,21 +82,30 @@ services:
        - /var/public.pem:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
-        - pgsql
+        - pgsqltotp
         
   user_expiration_cron:
     image: cloudcix/membershipcron:latest
     container_name: user_expiration_cron
     environment:
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - SUPER_USER_IDS=${SUPER_USER_IDS}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     command: ['user_expiration_reminders']
     
@@ -71,13 +113,22 @@ services:
     image: cloudcix/iaas:latest
     container_name: iaas
     environment:
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - SUPER_USER_IDS=${SUPER_USER_IDS}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     ports:
         - "${IP6}4004:3:80:80"
@@ -92,13 +143,22 @@ services:
     image: cloudcix/appmanager:latest
     container_name: appmanager
     environment:
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - SUPER_USER_IDS=${SUPER_USER_IDS}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     ports:
         - "${IP6}4004:4:80:80"
@@ -108,33 +168,26 @@ services:
     restart: on-failure
     depends_on:
         - pgsql
-        
-  pgsql:
-    image: cloudcix/pgsql:0.0
-    container_name: pgsql
-    environment:
-       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-       - /var/lib/pgsql:/var/lib/postgresql/data/
-       
-  pgsqltotp:
-    image: cloudcix/pgsqltotp:0.0
-    container_name: pgsqltotp
-    environment:
-       - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
-    volumes:
-       - /var/lib/pgsqltotp:/var/lib/postgresql/data/
 
   cop:
     image: cloudcix/cop:latest
     container_name: cop
     environment:
+       - PGSQL_USER=${PGSQL_USER}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}  
     ports:
       - "${PMS5}:80:80"
       - "${PMS5}:443:443"
@@ -148,7 +201,7 @@ services:
     container_name: apiproxy
     environment:
         - ADMIN_EMAIL=${ADMIN_EMAIL}
-        - ORGANISATION=${ORGANIZATION}
+        - ORGANIZATION_URL=${ORGANIZATION_URL}
         - POD_NAME=${POD_NAME}
     ports:
         - "${PMS4}:80:80"
@@ -159,7 +212,6 @@ services:
          target: /etc/letsencrypt
          volume: 
            nocopy: true
-
       
   apacheds:
     image: tgbyte/apacheds:latest
@@ -175,12 +227,13 @@ services:
         - "${PMS5}:5432:80"
         - "${IP6}5002:1:5432:80"
       environment:
-        - PGADMIN_DEFAULT_EMAIL=admin@postgres
+        - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
         - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       depends_on:
         - pgsql
+        - pgsqltotp
    
-   seed_pgsql:
+  seed_pgsql:
     image: cloudcix/seed:latest
     container_name: seed_pgsql
     environment:
@@ -189,9 +242,9 @@ services:
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
        - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
        - LDAP_PASSWORD=${LDAP_PASSWORD}
-       - ORGANIZATION=${ORGANIZATION}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
        - POD_NAME=${POD_NAME}
-       - PGSQL_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
     restart: on-failure
     depends_on:

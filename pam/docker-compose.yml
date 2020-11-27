@@ -5,7 +5,7 @@ services:
      image: cloudcix/pgsqlpam:0.0
      container_name: pgsqlpam
      environment:
-       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
      volumes:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
             
@@ -15,31 +15,34 @@ services:
      depends_on:
        - pgsqlpam
      environment:
-       - PGSQLPAM_PASSWORD=${POSTGRES_PASSWORD}
-       - PAM_SECRET_KEY=${POD_SECRET_KEY}
+       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - POD_SECRET_KEY=${POD_SECRET_KEY}
      ports:
-       - "10.0.0.2:80:80"
-       
+       - "10.${podid}.0.2:8000:80"
+     restart: on-failure
+     depends_on:
+        - pgsqlpam
+
    mysql:
     image: mysql
     container_name: mysql
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_DATABASE=librenms
-      - MYSQL_USER=librenms
+      - MYSQL_ALLOW_EMPTY_PASSWORD=${MYSQL_EMPTY_PW}
+      - MYSQL_DATABASE=${MYSQL_DB}
+      - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
                 
    librenms:
       image: librenms/librenms
       container_name: librenms
       ports:
-         - "10.0.14.4:8000:8000"
+         - "10.${podid}.0.4:8000:8000"
       depends_on:
          - mysql
       environment:
         - DB_HOST=mysql
-        - DB_NAME=librenms
-        - DB_USER=librenms
+        - DB_NAME=${MYSQL_DB}
+        - DB_USER=${MYSQL_USER}
         - DB_PASSWORD=${MYSQL_PASSWORD}
    
    radius:
@@ -48,6 +51,12 @@ services:
       ports:
          - "1645:1645"
          - "1646:1646"
+
+   ldap:
+      image: osixia/openldap
+      container_name: ldap
+      ports:
+         - "389:389"
       
    apacheds:
       image: tgbyte/apacheds:latest
@@ -55,6 +64,8 @@ services:
       ports:
         - "${PMS3}:10389:10389"
         - "${IP6}3002:2:10389:10389"
+      depends_on:
+         - ldap
 
    pgadmin:
       image: dpage/pgadmin4
@@ -63,19 +74,15 @@ services:
         - "${PMS3}:5432:80"
         - "${IP6}3002:1:5432:80"
       environment:
-       - PGADMIN_DEFAULT_EMAIL=admin@postgres
+       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      depends_on:
+        - pgsql
 
    jumphost:
       image: cloudcix/jumphost:0.0
       container_name: jumphost
       ports:
-        - "10.0.0.5:2222:22"
-        - "10.0.0.5:5901:5901"
+        - "10.${podid}.0.5:2222:22"
+        - "10.${podid}.0.5:5901:5901"
       entrypoint: tail -f /dev/null
-      
-   ldap:
-      image: osixia/openldap
-      container_name: ldap
-      ports:
-         - "389:389"

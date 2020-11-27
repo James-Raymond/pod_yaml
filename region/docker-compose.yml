@@ -8,10 +8,19 @@ services:
        - NETWORK_PASSWORD=${NETWORK_PASSWORD}
        - COP_NAME=${COP_NAME}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
-       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
-       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
-       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
+       - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+       - ROBOT_API_KEY=${ROBOT_API_KEY}
+       - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
+       - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+       - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
        - /home/administrator/celerybeat:/opt/robot/celerybeat
     entrypoint: supervisord
@@ -23,14 +32,23 @@ services:
        - NETWORK_PASSWORD=${NETWORK_PASSWORD}
        - COP_NAME=${COP_NAME}
        - POD_NAME=${POD_NAME}
-       - ORGANIZATION=${ORGANIZATION}
-       - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
-       - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
-       - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+       - ORGANIZATION_URL=${ORGANIZATION_URL}
+       - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+       - ROBOT_API_KEY=${ROBOT_API_KEY}
+       - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+       - SENTRY_URL=${SENTRY_URL}
+       - PAM_NAME=${PAM_NAME}
+       - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+       - EMAIL_HOST=${EMAIL_HOST}
+       - EMAIL_USER=${EMAIL_USER}
+       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+       - EMAIL_PORT=${EMAIL_PORT}
+       - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+       - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
       - /var/lib/robot:/mnt/images
-      - /var/private.pem:~/.ssh/private-key.rsa
-      - /var/public.pem:~/.ssh/public_key.rsa
+      - /etc/cloudcix/region/id_rsa:/root/.ssh/
+      - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/
     entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
   rabbitmq:
