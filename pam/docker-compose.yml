@@ -16,6 +16,7 @@ services:
        - pgsqlpam
      environment:
        - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      ports:
        - "10.${podid}.0.2:8000:80"
@@ -77,7 +78,7 @@ services:
        - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       depends_on:
-        - pgsql
+        - pgsqlpam
 
    jumphost:
       image: cloudcix/jumphost:0.0
