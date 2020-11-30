@@ -6,6 +6,7 @@ services:
      container_name: pgsqlpam
      environment:
        - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQL_USER}
      volumes:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
             
@@ -19,7 +20,8 @@ services:
        - PGSQL_USER=${PGSQL_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      ports:
-       - "10.${podid}.0.2:8000:80"
+       - "10.${podid}.0.2:80:80"
+       - "10.${podid}.0.2:443:80"
      restart: on-failure
      depends_on:
         - pgsqlpam
@@ -37,7 +39,9 @@ services:
       image: librenms/librenms
       container_name: librenms
       ports:
-         - "10.${podid}.0.4:8000:8000"
+         - "10.${podid}.0.4:80:80"
+         - "10.${podid}.0.4:443:443"
+         - "10.${podid}.0.4:161:161"
       depends_on:
          - mysql
       environment:
@@ -50,8 +54,8 @@ services:
       image: freeradius/freeradius-server
       container_name: radius
       ports:
-         - "1645:1645"
-         - "1646:1646"
+         - "10.${podid}.0.3:1645:1645"
+         - "10.${podid}.0.3:1646:1646"
 
    ldap:
       image: osixia/openldap
@@ -84,6 +88,6 @@ services:
       image: cloudcix/jumphost:0.0
       container_name: jumphost
       ports:
-        - "10.${podid}.0.5:2222:22"
+        - "10.${podid}.0.5:22:22"
         - "10.${podid}.0.5:5901:5901"
       entrypoint: tail -f /dev/null
