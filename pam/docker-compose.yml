@@ -89,5 +89,6 @@ services:
       container_name: jumphost
       ports:
         - "10.${podid}.0.5:22:22"
+        - "10.${podid}.0.5:80:80"
         - "10.${podid}.0.5:5901:5901"
       entrypoint: tail -f /dev/null
