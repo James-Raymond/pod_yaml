@@ -49,6 +49,8 @@ services:
       - /var/lib/robot:/mnt/images
       - /etc/cloudcix/region/id_rsa:/root/.ssh/
       - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/
+    ports:
+      - "${IP6}6001:1:22:22"
     entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
   rabbitmq:
