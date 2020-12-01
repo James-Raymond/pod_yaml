@@ -85,7 +85,7 @@ services:
         - pgsqlpam
 
    jumphost:
-      image: cloudcix/jumphost:0.0
+      image: cloudcix/jumphost:latest
       container_name: jumphost
       ports:
         - "10.${podid}.0.5:22:22"
