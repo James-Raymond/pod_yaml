@@ -20,8 +20,8 @@ services:
        - PGSQL_USER=${PGSQL_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      ports:
-       - "10.${podid}.0.2:80:80"
-       - "10.${podid}.0.2:443:80"
+       - "10.${podid}.0.6:80:80"
+       - "10.${podid}.0.6:443:80"
      restart: on-failure
      depends_on:
         - pgsqlpam
@@ -85,7 +85,7 @@ services:
         - pgsqlpam
 
    jumphost:
-      image: cloudcix/jumphost:latest
+      image: cloudcix/jumphost:0.0
       container_name: jumphost
       ports:
         - "10.${podid}.0.5:22:22"
