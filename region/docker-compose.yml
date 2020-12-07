@@ -1,5 +1,14 @@
 version: '3'
 
+networks:
+  mgmt:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "${IP6}/64"
+          gateway: "${IP6}:1"
+
 services:
   robot:
     image: cloudcix/robot:latest
@@ -47,10 +56,11 @@ services:
        - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
       - /var/lib/robot:/mnt/images
-      - /etc/cloudcix/region/id_rsa:/root/.ssh/
-      - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/
-    ports:
-      - "${IP6}6001:1:22:22"
+      - /etc/cloudcix/region/id_rsa:/root/.ssh/id_rsa
+      - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/id_rsa.pub
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}6001:1"
     entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
   rabbitmq:
@@ -63,5 +73,7 @@ services:
     container_name: flowerregion
     ports:
       - "${PMS6}:5555:5555"
-      - "${IP6}6002:4:5555:5555"
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}6002:4"
     entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/

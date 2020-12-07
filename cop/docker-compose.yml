@@ -1,4 +1,14 @@
 version: '3'
+
+networks:
+  mgmt:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "${IP6}/64"
+          gateway: "${IP6}:1"
+
 services:
   membershipldap:
     image: osixia/openldap
@@ -6,18 +16,18 @@ services:
     environment:
        - LDAP_ORGANISATION=${ORGANIZATION_URL}
        - LDAP_DOMAIN=${ORGANIZATION_URL}
-       - LDAP_ADMIN_PASSWORD=${LDAP_PASSWORD}
+       - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
 
-  pgsql:
-    image: cloudcix/pgsql:0.0
-    container_name: pgsql
+  pgsqlapi:
+    image: cloudcix/pgsqlapi:latest
+    container_name: pgsqlapi
     environment:
-       - POSTGRES_PASSWORD=${PGSQL_PASSWORD}
+       - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
     volumes:
-       - /var/lib/pgsql:/var/lib/postgresql/data/
+       - /var/lib/pgsqlapi:/var/lib/postgresql/data/
        
   pgsqltotp:
-    image: cloudcix/pgsqltotp:0.0
+    image: cloudcix/pgsqltotp:latest
     container_name: pgsqltotp
     environment:
        - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
@@ -28,16 +38,16 @@ services:
     image: cloudcix/membership:latest
     container_name: membership
     environment:
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
-       - PGSQL_USER=${PGSQL_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
-       - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
+       - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
        - SENTRY_URL=${SENTRY_URL}
        - PAM_NAME=${PAM_NAME}
        - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
@@ -47,15 +57,15 @@ services:
        - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
-    ports:
-        - "${IP6}4004:1:80:80"
-        - "${IP6}4004:1:443:443"
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}4004:1"
     volumes:
        - /var/private.pem:/application_framework/private-key.rsa
        - /var/public.pem:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
-        - pgsql
+        - pgsqlapi
         - membershipldap
 
   otp:
@@ -79,9 +89,9 @@ services:
        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
-    ports:
-        - "${IP6}4004:2:80:80"
-        - "${IP6}4004:2:443:443"
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}4004:2"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
     restart: on-failure
@@ -92,16 +102,16 @@ services:
     image: cloudcix/membershipcron:latest
     container_name: user_expiration_cron
     environment:
-       - PGSQL_USER=${PGSQL_USER}
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
-       - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
+       - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
        - SENTRY_URL=${SENTRY_URL}
        - PAM_NAME=${PAM_NAME}
        - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
@@ -117,8 +127,8 @@ services:
     image: cloudcix/iaas:latest
     container_name: iaas
     environment:
-       - PGSQL_USER=${PGSQL_USER}
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
@@ -134,21 +144,21 @@ services:
        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
-    ports:
-        - "${IP6}4004:3:80:80"
-        - "${IP6}4004:3:443:443"
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}4004:3"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
-        - pgsql
+        - pgsqlapi
         
   appmanager:
     image: cloudcix/appmanager:latest
     container_name: appmanager
     environment:
-       - PGSQL_USER=${PGSQL_USER}
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
@@ -164,21 +174,21 @@ services:
        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
-    ports:
-        - "${IP6}4004:4:80:80"
-        - "${IP6}4004:4:443:443"
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}4004:4"
     volumes:
        - /var/public.pem:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
-        - pgsql
+        - pgsqlapi
 
   cop:
     image: cloudcix/cop:latest
     container_name: cop
     environment:
-       - PGSQL_USER=${PGSQL_USER}
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
        - POD_NAME=${POD_NAME}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
@@ -192,11 +202,12 @@ services:
        - EMAIL_USER=${EMAIL_USER}
        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}  
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}5002:3"
     ports:
       - "${PMS5}:80:80"
       - "${PMS5}:443:443"
-      - "${IP6}5002:3:80:80"
-      - "${IP6}5002:3:443:443"
     volumes:
        - /var/public.pem:/app_framework/system_conf/public-key.rsa
   
@@ -217,24 +228,26 @@ services:
          volume: 
            nocopy: true
       
-  apacheds:
+  apachedscop:
     image: tgbyte/apacheds:latest
-    container_name: apacheds
-    ports:
-      - "${PMS5}:10389:80"
-      - "${IP6}5002:2:10389:10389"
+    container_name: apachedscop
+    networks:
+      mgmt:
+        ipv6_address: "${IP6}5002:2"
         
-  pgadmin:
+  pgadmincop:
       image: dpage/pgadmin4
-      container_name: pgadmin
+      container_name: pgadmincop
+      networks:
+        mgmt:
+          ipv6_address: "${IP6}5002:1"
       ports:
         - "${PMS5}:5432:80"
-        - "${IP6}5002:1:5432:80"
       environment:
-        - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+        - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
+        - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
       depends_on:
-        - pgsql
+        - pgsqlapi
         - pgsqltotp
    
   seed_pgsql:
@@ -244,15 +257,16 @@ services:
        - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
        - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
        - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-       - LDAP_DOMAIN_CONTROLLER=${LDAP_DOMAIN_CONTROLLER}
-       - LDAP_PASSWORD=${LDAP_PASSWORD}
+       - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
+       - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
        - ORGANIZATION_URL=${ORGANIZATION_URL}
        - POD_NAME=${POD_NAME}
-       - PGSQL_PASSWORD=${PGSQL_PASSWORD}
+       - PGSQL_USER=${PGSQLAPI_USER}
+       - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
     restart: on-failure
     depends_on:
-        - pgsql
+        - pgsqlapi
         - membership
         - membershipldap
         - appmanager
