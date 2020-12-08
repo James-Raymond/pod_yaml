@@ -22,8 +22,6 @@ services:
     volumes:
        - /data/slapd/membershipldap/database:/var/lib/ldap
        - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
-    networks:
-      default:
 
   membershipldapbackup:
     image: osixia/openldap-backup
@@ -32,8 +30,6 @@ services:
       - membershipldap
     volumes:
       - /data/openldap/membershipldap/backup:/data/backup
-    networks:
-      default:
 
   pgsqlapi:
     image: cloudcix/pgsqlapi:latest
@@ -42,8 +38,6 @@ services:
        - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
     volumes:
        - /var/lib/pgsqlapi:/var/lib/postgresql/data/
-    networks:
-      default:
        
   pgsqltotp:
     image: cloudcix/pgsqltotp:latest
@@ -52,8 +46,6 @@ services:
        - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
     volumes:
        - /var/lib/pgsqltotp:/var/lib/postgresql/data/
-    networks:
-      default:
 
   membership:
     image: cloudcix/membership:latest
@@ -145,8 +137,6 @@ services:
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     command: ['user_expiration_reminders']
-    networks:
-      default:
     
   iaas:
     image: cloudcix/iaas:latest
@@ -255,8 +245,6 @@ services:
          target: /etc/letsencrypt
          volume: 
            nocopy: true
-    networks:
-      default:
       
   apachedscop:
     image: tgbyte/apacheds:latest
@@ -304,8 +292,6 @@ services:
         - appmanager
         - iaas
         - otp
-    networks:
-      default:
 
 volumes:
     letsencrypt:

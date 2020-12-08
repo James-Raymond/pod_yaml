@@ -34,8 +34,6 @@ services:
        - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
        - /home/administrator/celerybeat:/opt/robot/celerybeat
-    networks:
-      default:
     entrypoint: supervisord
 
   robotworker:
@@ -72,8 +70,6 @@ services:
     image: rabbitmq
     container_name: rabbitmq
     hostname: rabbitmq
-    networks:
-      default:
     
   flower:
     image: mher/flower:0.9.5

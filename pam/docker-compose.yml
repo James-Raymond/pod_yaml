@@ -26,8 +26,6 @@ services:
        - PGSQL_USER=${PGSQLPAM_USER}
      volumes:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
-     networks:
-       default:
             
    pam:
      image: cloudcix/pam:latest
@@ -54,8 +52,6 @@ services:
       - MYSQL_DATABASE=${MYSQL_DB}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    networks:
-      default:
 
    librenms:
       image: librenms/librenms
@@ -92,8 +88,6 @@ services:
       volumes:
        - /data/slapd/pamldap/database:/var/lib/ldap
        - /data/slapd/pamldap/config:/etc/ldap/slapd.d
-      networks:
-        default:
 
    pamldapbackup:
       image: osixia/openldap-backup
@@ -102,8 +96,6 @@ services:
         - pamldap
       volumes:
         - /data/openldap/pamldap/backup:/data/backup
-      networks:
-        default:
 
    apachedspam:
       image: tgbyte/apacheds:latest
