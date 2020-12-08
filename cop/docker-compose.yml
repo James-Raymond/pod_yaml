@@ -1,6 +1,8 @@
 version: '3'
 
 networks:
+  default:
+    driver: bridge
   mgmt:
     driver: bridge
     enable_ipv6: true
@@ -69,6 +71,7 @@ services:
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}4004:1"
     volumes:
@@ -101,6 +104,7 @@ services:
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}4004:2"
     volumes:
@@ -156,6 +160,7 @@ services:
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}4004:3"
     volumes:
@@ -186,6 +191,7 @@ services:
        - EMAIL_PORT=${EMAIL_PORT}
        - RELEASE=stable
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}4004:4"
     volumes:
@@ -214,6 +220,7 @@ services:
        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
        - EMAIL_PORT=${EMAIL_PORT}  
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}5002:3"
     ports:
@@ -243,23 +250,25 @@ services:
     image: tgbyte/apacheds:latest
     container_name: apachedscop
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}5002:2"
         
   pgadmincop:
-      image: dpage/pgadmin4
-      container_name: pgadmincop
-      networks:
-        mgmt:
-          ipv6_address: "${IP6}5002:1"
-      ports:
-        - "${PMS5}:5432:80"
-      environment:
-        - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
-        - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
-      depends_on:
-        - pgsqlapi
-        - pgsqltotp
+    image: dpage/pgadmin4
+    container_name: pgadmincop
+    networks:
+      default:
+      mgmt:
+        ipv6_address: "${IP6}5002:1"
+    ports:
+      - "${PMS5}:5432:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
+    depends_on:
+      - pgsqlapi
+      - pgsqltotp
    
   seed_pgsql:
     image: cloudcix/seed:latest
