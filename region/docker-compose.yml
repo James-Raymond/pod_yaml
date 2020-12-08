@@ -7,7 +7,7 @@ networks:
     ipam:
       config:
         - subnet: "${IP6}/64"
-          gateway: "${IP6}:1"
+          gateway: "${IP6}1"
 
 services:
   robot:
