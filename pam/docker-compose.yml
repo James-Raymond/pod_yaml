@@ -80,7 +80,18 @@ services:
        - LDAP_ADMIN_PASSWORD=${PAMLDAP_PASSWORD}
       ports:
          - "389:389"
-      
+      volumes:
+       - /data/slapd/pamldap/database:/var/lib/ldap
+       - /data/slapd/pamldap/config:/etc/ldap/slapd.d
+
+   pamldapbackup:
+      image: osixia/openldap-backup
+      container_name: pamldapbackup
+      volumes_from:
+        - pamldap
+      volumes:
+        - /data/openldap/pamldap/backup:/data/backup
+
    apachedspam:
       image: tgbyte/apacheds:latest
       container_name: apachedspam

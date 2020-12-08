@@ -17,6 +17,17 @@ services:
        - LDAP_ORGANISATION=${ORGANIZATION_URL}
        - LDAP_DOMAIN=${ORGANIZATION_URL}
        - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+    volumes:
+       - /data/slapd/membershipldap/database:/var/lib/ldap
+       - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
+
+  membershipldapbackup:
+    image: osixia/openldap-backup
+    container_name: membershipldapbackup
+    volumes_from:
+      - membershipldap
+    volumes:
+      - /data/openldap/membershipldap/backup:/data/backup
 
   pgsqlapi:
     image: cloudcix/pgsqlapi:latest
