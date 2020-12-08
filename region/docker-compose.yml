@@ -1,6 +1,8 @@
 version: '3'
 
 networks:
+  default:
+    driver: bridge
   mgmt:
     driver: bridge
     enable_ipv6: true
@@ -32,6 +34,8 @@ services:
        - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
        - /home/administrator/celerybeat:/opt/robot/celerybeat
+    networks:
+      default:
     entrypoint: supervisord
 
   robotworker:
@@ -59,6 +63,7 @@ services:
       - /etc/cloudcix/region/id_rsa:/root/.ssh/id_rsa
       - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/id_rsa.pub
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}6001:1"
     entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
@@ -67,6 +72,8 @@ services:
     image: rabbitmq
     container_name: rabbitmq
     hostname: rabbitmq
+    networks:
+      default:
     
   flower:
     image: mher/flower:0.9.5
@@ -74,6 +81,7 @@ services:
     ports:
       - "${PMS6}:5555:5555"
     networks:
+      default:
       mgmt:
         ipv6_address: "${IP6}6002:4"
     entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/

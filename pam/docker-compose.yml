@@ -1,6 +1,8 @@
 version: '3'
 
 networks:
+  default:
+    driver: bridge
   mgmt:
     driver: bridge
     enable_ipv6: true
@@ -24,6 +26,8 @@ services:
        - PGSQL_USER=${PGSQLPAM_USER}
      volumes:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+     networks:
+       default:
             
    pam:
      image: cloudcix/pam:latest
@@ -35,6 +39,7 @@ services:
        - PGSQL_USER=${PGSQLPAM_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      networks:
+       default:
        oob:
          ipv4_address: "10.${podid}.0.6"
      restart: on-failure
@@ -49,11 +54,14 @@ services:
       - MYSQL_DATABASE=${MYSQL_DB}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-                
+    networks:
+      default:
+
    librenms:
       image: librenms/librenms
       container_name: librenms
       networks:
+        default:
         oob:
           ipv4_address: "10.${podid}.0.4"
       depends_on:
@@ -68,6 +76,7 @@ services:
       image: freeradius/freeradius-server
       container_name: radius
       networks:
+        default:
         oob:
           ipv4_address: "10.${podid}.0.3"
 
@@ -83,6 +92,8 @@ services:
       volumes:
        - /data/slapd/pamldap/database:/var/lib/ldap
        - /data/slapd/pamldap/config:/etc/ldap/slapd.d
+      networks:
+        default:
 
    pamldapbackup:
       image: osixia/openldap-backup
@@ -91,11 +102,14 @@ services:
         - pamldap
       volumes:
         - /data/openldap/pamldap/backup:/data/backup
+      networks:
+        default:
 
    apachedspam:
       image: tgbyte/apacheds:latest
       container_name: apachedspam
       networks:
+        default:
         mgmt:
           ipv6_address: "${IP6}3002:2"
       ports:
@@ -107,6 +121,7 @@ services:
       image: dpage/pgadmin4
       container_name: pgadminpam
       networks:
+        default:
         mgmt:
           ipv6_address: "${IP6}3002:1"
       ports:
@@ -121,6 +136,7 @@ services:
       image: cloudcix/jumphost:latest
       container_name: jumphost
       networks:
+        default:
         oob:
           ipv4_address: "10.${podid}.0.5"
       entrypoint: tail -f /dev/null
