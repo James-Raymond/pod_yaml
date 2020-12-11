@@ -58,8 +58,8 @@ services:
        - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
       - /var/lib/robot:/mnt/images
-      - /etc/cloudcix/region/id_rsa:/root/.ssh/id_rsa
-      - /etc/cloudcix/region/id_rsa.pub:/root/.ssh/id_rsa.pub
+      - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
+      - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
     networks:
       default:
       mgmt:
