@@ -22,8 +22,7 @@ services:
      image: cloudcix/pgsqlpam:latest
      container_name: pgsqlpam
      environment:
-       - PGSQL_PASSWORD=${PGSQLPAM_PASSWORD}
-       - PGSQL_USER=${PGSQLPAM_USER}
+       - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
      volumes:
        - /var/lib/pgsqlpam:/var/lib/postgresql/data/
             
