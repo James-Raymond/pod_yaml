@@ -26,6 +26,9 @@ services:
   membershipldapbackup:
     image: osixia/openldap-backup
     container_name: membershipldapbackup
+    environment:
+      - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
+      - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
     volumes_from:
       - membershipldap
     volumes:

@@ -32,8 +32,8 @@ services:
      depends_on:
        - pgsqlpam
      environment:
-       - PGSQL_PASSWORD=${PGSQLPAM_PASSWORD}
-       - PGSQL_USER=${PGSQLPAM_USER}
+       - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
+       - PGSQLPAM_USER=${PGSQLPAM_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      networks:
        default:
@@ -91,6 +91,9 @@ services:
    pamldapbackup:
       image: osixia/openldap-backup
       container_name: pamldapbackup
+      environment:
+        - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
+        - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
       volumes_from:
         - pamldap
       volumes:
