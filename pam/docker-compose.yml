@@ -8,14 +8,14 @@ networks:
     enable_ipv6: true
     ipam:
       config:
-        - subnet: "${IP6}/64"
+        - subnet: "${IP6}/80"
           gateway: "${IP6}1"
   oob:
     driver: bridge
     ipam:
       config:
-        - subnet: "10.${podid}.0.0/16"
-          gateway: "10.${podid}.0.1"
+        - subnet: "10.${pod_id}.0.0/16"
+          gateway: "10.${pod_id}.0.1"
 
 services:
    pgsqlpam:
@@ -38,7 +38,7 @@ services:
      networks:
        default:
        oob:
-         ipv4_address: "10.${podid}.0.6"
+         ipv4_address: "10.${pod_id}.0.6"
      restart: on-failure
      depends_on:
         - pgsqlpam
@@ -47,8 +47,8 @@ services:
     image: mysql
     container_name: mysql
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=${MYSQL_EMPTY_PW}
-      - MYSQL_DATABASE=${MYSQL_DB}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=${MYSQL_ALLOW_EMPTY_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
 
@@ -58,12 +58,12 @@ services:
       networks:
         default:
         oob:
-          ipv4_address: "10.${podid}.0.4"
+          ipv4_address: "10.${pod_id}.0.4"
       depends_on:
          - mysql
       environment:
         - DB_HOST=mysql
-        - DB_NAME=${MYSQL_DB}
+        - DB_NAME=${MYSQL_DATABASE}
         - DB_USER=${MYSQL_USER}
         - DB_PASSWORD=${MYSQL_PASSWORD}
    
@@ -73,7 +73,7 @@ services:
       networks:
         default:
         oob:
-          ipv4_address: "10.${podid}.0.3"
+          ipv4_address: "10.${pod_id}.0.3"
 
    pamldap:
       image: osixia/openldap
@@ -132,5 +132,5 @@ services:
       networks:
         default:
         oob:
-          ipv4_address: "10.${podid}.0.5"
+          ipv4_address: "10.${pod_id}.0.5"
       entrypoint: tail -f /dev/null
