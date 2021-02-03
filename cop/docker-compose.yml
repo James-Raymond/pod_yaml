@@ -78,8 +78,8 @@ services:
       mgmt:
         ipv6_address: "${IP6}4004:1"
     volumes:
-       - /var/private.pem:/application_framework/private-key.rsa
-       - /var/public.pem:/application_framework/public-key.rsa
+       - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
+       - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
         - pgsqlapi
@@ -111,7 +111,7 @@ services:
       mgmt:
         ipv6_address: "${IP6}4004:2"
     volumes:
-       - /var/public.pem:/application_framework/public-key.rsa
+       - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
         - pgsqltotp
@@ -167,7 +167,7 @@ services:
       mgmt:
         ipv6_address: "${IP6}4004:3"
     volumes:
-       - /var/public.pem:/application_framework/public-key.rsa
+       - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
         - pgsqlapi
@@ -198,7 +198,7 @@ services:
       mgmt:
         ipv6_address: "${IP6}4004:4"
     volumes:
-       - /var/public.pem:/application_framework/public-key.rsa
+       - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
     restart: on-failure
     depends_on:
         - pgsqlapi
@@ -230,7 +230,7 @@ services:
       - "${PMS5}:80:80"
       - "${PMS5}:443:443"
     volumes:
-       - /var/public.pem:/app_framework/system_conf/public-key.rsa
+       - /home/administrator/.ssh/id_rsa.pub:/app_framework/system_conf/public-key.rsa
   
   apache:
     image: cloudcix/apiproxy:latest

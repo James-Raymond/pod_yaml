@@ -55,7 +55,6 @@ services:
        - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
        - EMAIL_PORT=${REGION_EMAIL_PORT}
        - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
-       - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
     volumes:
       - /var/lib/robot:/mnt/images
       - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
