@@ -56,7 +56,7 @@ services:
        - EMAIL_PORT=${REGION_EMAIL_PORT}
        - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
     volumes:
-      - /var/lib/robot:/mnt/images
+      - /etc/cloudcix/robot:/mnt/images
       - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
       - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
     networks:
