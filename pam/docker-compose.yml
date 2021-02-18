@@ -11,10 +11,13 @@ networks:
         - subnet: "${IP6}/80"
           gateway: "${IP6}ffff"
   oob:
-    driver: bridge
+    driver: macvlan
+    driver_opts:
+      parent: ${OOB_INTERFACE}
     ipam:
       config:
         - subnet: "10.${pod_id}.0.0/16"
+          ip_range: "10.${pod_id}.0.0/24"
           gateway: "10.${pod_id}.0.1"
 
 services:
@@ -36,7 +39,6 @@ services:
        - PGSQLPAM_USER=${PGSQLPAM_USER}
        - POD_SECRET_KEY=${POD_SECRET_KEY}
      networks:
-       default:
        oob:
          ipv4_address: "10.${pod_id}.0.6"
      restart: on-failure
@@ -55,7 +57,6 @@ services:
       image: librenms/librenms
       container_name: librenms
       networks:
-        default:
         oob:
           ipv4_address: "10.${pod_id}.0.4"
       depends_on:
@@ -70,7 +71,6 @@ services:
       image: freeradius/freeradius-server
       container_name: radius
       networks:
-        default:
         oob:
           ipv4_address: "10.${pod_id}.0.3"
 
@@ -129,7 +129,6 @@ services:
       image: cloudcix/jumphost:latest
       container_name: jumphost
       networks:
-        default:
         oob:
           ipv4_address: "10.${pod_id}.0.5"
       entrypoint: tail -f /dev/null
