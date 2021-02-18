@@ -10,8 +10,129 @@ networks:
          config:
             - subnet: "${IP6}/80"
               gateway: "${IP6}ffff"
+   oob:
+      driver: macvlan
+      driver_opts:
+         parent: ${OOB_INTERFACE}
+      ipam:
+         config:
+            - subnet: "10.${pod_id}.0.0/16"
+              ip_range: "10.${pod_id}.0.0/24"
+              gateway: "10.${pod_id}.0.1"
 
 services:
+   pgsqlpam:
+      image: cloudcix/pgsqlpam:latest
+      container_name: pgsqlpam
+      environment:
+            - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
+      volumes:
+            - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+                  
+   pam:
+      image: cloudcix/pam:latest
+      container_name: pam
+      depends_on:
+         - pgsqlpam
+      environment:
+         - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
+         - PGSQLPAM_USER=${PGSQLPAM_USER}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.6"
+      restart: on-failure
+      depends_on:
+            - pgsqlpam
+
+   mysql:
+      image: mysql
+      container_name: mysql
+      environment:
+         - MYSQL_DATABASE=${MYSQL_DATABASE}
+         - MYSQL_USER=${MYSQL_USER}
+         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+   librenms:
+      image: librenms/librenms
+      container_name: librenms
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.4"
+      depends_on:
+         - mysql
+      environment:
+         - DB_HOST=mysql
+         - DB_NAME=${MYSQL_DATABASE}
+         - DB_USER=${MYSQL_USER}
+         - DB_PASSWORD=${MYSQL_PASSWORD}
+ 
+   radius:
+      image: freeradius/freeradius-server
+      container_name: radius
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.3"
+
+   pamldap:
+      image: osixia/openldap
+      container_name: pamldap
+      environment:
+      - LDAP_ORGANISATION=${ORGANIZATION_URL}
+      - LDAP_DOMAIN=${ORGANIZATION_URL}
+      - LDAP_ADMIN_PASSWORD=${PAMLDAP_PASSWORD}
+      ports:
+         - "389:389"
+      volumes:
+      - /data/slapd/pamldap/database:/var/lib/ldap
+      - /data/slapd/pamldap/config:/etc/ldap/slapd.d
+
+   pamldapbackup:
+      image: osixia/openldap-backup
+      container_name: pamldapbackup
+      environment:
+         - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
+         - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
+      volumes_from:
+         - pamldap
+      volumes:
+         - /data/openldap/pamldap/backup:/data/backup
+
+   apachedspam:
+      image: tgbyte/apacheds:latest
+      container_name: apachedspam
+      networks:
+         default:
+         mgmt:
+            ipv6_address: "${IP6}3002:2"
+      ports:
+         - "${PMS3}:10389:10389"
+      depends_on:
+         - pamldap
+
+   pgadminpam:
+      image: dpage/pgadmin4
+      container_name: pgadminpam
+      networks:
+         default:
+         mgmt:
+            ipv6_address: "${IP6}3002:1"
+      ports:
+         - "${PMS3}:5432:80"
+      environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
+      depends_on:
+         - pgsqlpam
+
+   jumphost:
+      image: cloudcix/jumphost:latest
+      container_name: jumphost
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.5"
+      entrypoint: tail -f /dev/null
+
    membershipldap:
       image: osixia/openldap
       container_name: membershipldap
@@ -295,6 +416,75 @@ services:
          - appmanager
          - iaas
          - otp
+
+   robot:
+      image: cloudcix/robot:latest
+      container_name: robot
+      environment:
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - COP_NAME=${COP_NAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - SENTRY_URL=${REGION_SENTRY_URL}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - EMAIL_HOST=${REGION_EMAIL_HOST}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
+         - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
+      volumes:
+         - /home/administrator/celerybeat:/opt/robot/celerybeat
+      entrypoint: supervisord
+
+   robotworker:
+      image: cloudcix/robot:latest
+      container_name: robotworker
+      environment:
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - COP_NAME=${COP_NAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - SENTRY_URL=${SENTRY_URL}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - EMAIL_HOST=${REGION_EMAIL_HOST}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
+         - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+      volumes:
+        - /etc/cloudcix/robot:/mnt/images
+        - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
+        - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+      networks:
+        default:
+        mgmt:
+          ipv6_address: "${IP6}6001:1"
+      entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
+
+   rabbitmq:
+      image: rabbitmq
+      container_name: rabbitmq
+      hostname: rabbitmq
+      
+   flower:
+      image: mher/flower:0.9.5
+      container_name: flowerregion
+      ports:
+        - "${PMS6}:5555:5555"
+      networks:
+        default:
+        mgmt:
+          ipv6_address: "${IP6}6002:4"
+      entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
 
 volumes:
    letsencrypt:

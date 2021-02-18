@@ -10,8 +10,129 @@ networks:
          config:
             - subnet: "${IP6}/80"
               gateway: "${IP6}ffff"
+   oob:
+      driver: macvlan
+      driver_opts:
+         parent: ${OOB_INTERFACE}
+      ipam:
+         config:
+            - subnet: "10.${pod_id}.0.0/16"
+              ip_range: "10.${pod_id}.0.0/24"
+              gateway: "10.${pod_id}.0.1"
 
 services:
+   pgsqlpam:
+      image: cloudcix/pgsqlpam:latest
+      container_name: pgsqlpam
+      environment:
+            - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
+      volumes:
+            - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+                  
+   pam:
+      image: cloudcix/pam:latest
+      container_name: pam
+      depends_on:
+         - pgsqlpam
+      environment:
+         - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
+         - PGSQLPAM_USER=${PGSQLPAM_USER}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.6"
+      restart: on-failure
+      depends_on:
+            - pgsqlpam
+
+   mysql:
+      image: mysql
+      container_name: mysql
+      environment:
+         - MYSQL_DATABASE=${MYSQL_DATABASE}
+         - MYSQL_USER=${MYSQL_USER}
+         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+   librenms:
+      image: librenms/librenms
+      container_name: librenms
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.4"
+      depends_on:
+         - mysql
+      environment:
+         - DB_HOST=mysql
+         - DB_NAME=${MYSQL_DATABASE}
+         - DB_USER=${MYSQL_USER}
+         - DB_PASSWORD=${MYSQL_PASSWORD}
+ 
+   radius:
+      image: freeradius/freeradius-server
+      container_name: radius
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.3"
+
+   pamldap:
+      image: osixia/openldap
+      container_name: pamldap
+      environment:
+      - LDAP_ORGANISATION=${ORGANIZATION_URL}
+      - LDAP_DOMAIN=${ORGANIZATION_URL}
+      - LDAP_ADMIN_PASSWORD=${PAMLDAP_PASSWORD}
+      ports:
+         - "389:389"
+      volumes:
+      - /data/slapd/pamldap/database:/var/lib/ldap
+      - /data/slapd/pamldap/config:/etc/ldap/slapd.d
+
+   pamldapbackup:
+      image: osixia/openldap-backup
+      container_name: pamldapbackup
+      environment:
+         - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
+         - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
+      volumes_from:
+         - pamldap
+      volumes:
+         - /data/openldap/pamldap/backup:/data/backup
+
+   apachedspam:
+      image: tgbyte/apacheds:latest
+      container_name: apachedspam
+      networks:
+         default:
+         mgmt:
+            ipv6_address: "${IP6}3002:2"
+      ports:
+         - "${PMS3}:10389:10389"
+      depends_on:
+         - pamldap
+
+   pgadminpam:
+      image: dpage/pgadmin4
+      container_name: pgadminpam
+      networks:
+         default:
+         mgmt:
+            ipv6_address: "${IP6}3002:1"
+      ports:
+         - "${PMS3}:5432:80"
+      environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
+      depends_on:
+         - pgsqlpam
+
+   jumphost:
+      image: cloudcix/jumphost:latest
+      container_name: jumphost
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.5"
+      entrypoint: tail -f /dev/null
+
    membershipldap:
       image: osixia/openldap
       container_name: membershipldap
