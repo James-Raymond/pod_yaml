@@ -62,8 +62,8 @@ services:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
-         - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
+         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - SENTRY_URL=${COP_SENTRY_URL}
          - PAM_NAME=${COP_PAM_NAME}
          - PAM_ORGANIZATION_URL=${COP_PAM_ORGANIZATION_URL}
@@ -128,8 +128,8 @@ services:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
-         - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
+         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - SENTRY_URL=${COP_SENTRY_URL}
          - PAM_NAME=${COP_PAM_NAME}
          - PAM_ORGANIZATION_URL=${COP_PAM_ORGANIZATION_URL}
@@ -140,7 +140,10 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       command: ['user_expiration_reminders']
-   
+      volumes:
+         - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+
    iaas:
       image: cloudcix/iaas:latest
       container_name: iaas
@@ -281,8 +284,8 @@ services:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - LDAP_DOMAIN_CONTROLLER=${MEMBERSHIPLDAP_DC}
-         - LDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
+         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
          - PGSQL_USER=${PGSQLAPI_USER}
