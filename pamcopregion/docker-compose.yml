@@ -128,10 +128,16 @@ services:
    jumphost:
       image: cloudcix/jumphost:latest
       container_name: jumphost
+      restart: always
       networks:
          oob:
             ipv4_address: "10.${pod_id}.0.5"
-      entrypoint: tail -f /dev/null
+      environment:
+         - RESOLUTION=1280x720
+         - USER=${JUMPHOST_USERNAME}
+         - PASSWORD=${JUMPHOST_PASSWORD}
+         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
+         - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
 
    membershipldap:
       image: osixia/openldap
