@@ -26,6 +26,9 @@ services:
       container_name: pgsqlpam
       environment:
             - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
+      networks:
+         oob:
+            ipv4_address: "10.${pod_id}.0.7"
       volumes:
             - /var/lib/pgsqlpam:/var/lib/postgresql/data/
                   
@@ -52,6 +55,7 @@ services:
          - MYSQL_DATABASE=${MYSQL_DATABASE}
          - MYSQL_USER=${MYSQL_USER}
          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 
    librenms:
       image: librenms/librenms
