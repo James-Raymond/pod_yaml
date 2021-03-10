@@ -230,11 +230,9 @@ services:
          default:
          mgmt:
             ipv6_address: "${IP6}5002:3"
-      ports:
-         - "${PMS5}:80:80"
-         - "${PMS5}:443:443"
       volumes:
          - /home/administrator/.ssh/id_rsa.pub:/app_framework/system_conf/public-key.rsa
+         - static_content:/static
    
    apache:
       image: cloudcix/apiproxy:latest
@@ -244,9 +242,16 @@ services:
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
       ports:
+         - "${PMS5}:80:80"
+         - "${PMS5}:443:443"
          - "${PMS4}:80:80"
          - "${PMS4}:443:443"
       volumes:
+         - type: volume
+           source: static_content
+           target: /static
+           volume:
+              nocopy: true
          - type: volume
            source: letsencrypt
            target: /etc/letsencrypt
@@ -302,3 +307,4 @@ services:
 
 volumes:
    letsencrypt:
+   static_content:
