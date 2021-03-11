@@ -1,7 +1,9 @@
 version: '3'
 
 networks:
-   default:
+   cop:
+      driver: bridge
+   region:
       driver: bridge
    mgmt:
       driver: bridge
@@ -21,9 +23,12 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
+# cop containers
    membershipldap:
       image: osixia/openldap
       container_name: membershipldap
+      networks:
+         cop:
       environment:
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
@@ -35,6 +40,8 @@ services:
    membershipldapbackup:
       image: osixia/openldap-backup
       container_name: membershipldapbackup
+      networks:
+         cop:
       environment:
          - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
          - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
@@ -46,6 +53,8 @@ services:
    pgsqlapi:
       image: cloudcix/pgsqlapi:latest
       container_name: pgsqlapi
+      networks:
+         cop:
       environment:
          - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
       volumes:
@@ -54,6 +63,8 @@ services:
    pgsqltotp:
       image: cloudcix/pgsqltotp:latest
       container_name: pgsqltotp
+      networks:
+         cop:
       environment:
          - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
       volumes:
@@ -83,7 +94,7 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}4004:1"
       volumes:
@@ -116,7 +127,7 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}4004:2"
       volumes:
@@ -128,6 +139,8 @@ services:
    user_expiration_cron:
       image: cloudcix/membershipcron:latest
       container_name: user_expiration_cron
+      networks:
+         cop:
       environment:
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
@@ -172,7 +185,7 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}4004:3"
       volumes:
@@ -203,7 +216,7 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}4004:4"
       volumes:
@@ -232,7 +245,7 @@ services:
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}5002:3"
       ports:
@@ -244,6 +257,8 @@ services:
    apache:
       image: cloudcix/apiproxy:latest
       container_name: apiproxy
+      networks:
+         cop:
       environment:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
@@ -262,7 +277,7 @@ services:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}5002:2"
          
@@ -270,7 +285,7 @@ services:
       image: dpage/pgadmin4
       container_name: pgadmincop
       networks:
-         default:
+         cop:
          mgmt:
             ipv6_address: "${IP6}5002:1"
       ports:
@@ -285,6 +300,8 @@ services:
    seed_pgsql:
       image: cloudcix/seed:latest
       container_name: seed_pgsql
+      networks:
+         cop:
       environment:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
@@ -305,9 +322,12 @@ services:
          - iaas
          - otp
 
+# region containers
    robot:
       image: cloudcix/robot:latest
       container_name: robot
+      networks:
+         region:
       environment:
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - COP_NAME=${COP_NAME}
@@ -353,7 +373,7 @@ services:
         - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
         - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
       networks:
-        default:
+        region:
         mgmt:
           ipv6_address: "${IP6}6001:1"
       entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
@@ -362,6 +382,8 @@ services:
       image: rabbitmq
       container_name: rabbitmq
       hostname: rabbitmq
+      networks:
+         region:
       
    flower:
       image: mher/flower:0.9.5
@@ -369,10 +391,11 @@ services:
       ports:
         - "${PMS6}:5555:5555"
       networks:
-        default:
+        region:
         mgmt:
           ipv6_address: "${IP6}6002:4"
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
 
 volumes:
+# cop volumes
    letsencrypt:
