@@ -8,8 +8,8 @@ networks:
       enable_ipv6: true
       ipam:
          config:
-            - subnet: "${IP6}/80"
-              gateway: "${IP6}ffff"
+            - subnet: "${IP6}d0c:0:1/96"
+              gateway: "${IP6}d0c:0:1"
    oob:
       driver: macvlan
       driver_opts:
@@ -138,15 +138,15 @@ services:
    jumphost:
       image: cloudcix/jumphost:latest
       container_name: jumphost
+      restart: always
       networks:
          oob:
             ipv4_address: "10.${pod_id}.0.5"
          mgmt:
-            ipv6_address: "${IP6}3002:1"
+            ipv6_address: "${IP6}d0c:3002:1"
       environment:
          - RESOLUTION=1280x720
          - USER=${JUMPHOST_USERNAME}
          - PASSWORD=${JUMPHOST_PASSWORD}
          - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
-      restart: always

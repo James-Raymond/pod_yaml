@@ -8,8 +8,8 @@ networks:
       enable_ipv6: true
       ipam:
          config:
-            - subnet: "${IP6}/80"
-              gateway: "${IP6}ffff"
+            - subnet: "${IP6}d0c:0:1/96"
+              gateway: "${IP6}d0c:0:1"
 
 services:
    robot:
@@ -64,7 +64,7 @@ services:
       networks:
          region:
          mgmt:
-            ipv6_address: "${IP6}6001:1"
+            ipv6_address: "${IP6}d0c:6001:1"
       entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
    rabbitmq:
@@ -82,5 +82,5 @@ services:
       networks:
          region:
          mgmt:
-            ipv6_address: "${IP6}6002:4"
+            ipv6_address: "${IP6}d0c:6002:4"
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/

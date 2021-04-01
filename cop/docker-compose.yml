@@ -8,8 +8,8 @@ networks:
       enable_ipv6: true
       ipam:
          config:
-            - subnet: "${IP6}/80"
-              gateway: "${IP6}ffff"
+            - subnet: "${IP6}d0c:0:1/96"
+              gateway: "${IP6}d0c:0:1"
 
 services:
    membershipldap:
@@ -84,7 +84,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}4004:1"
+            ipv6_address: "${IP6}d0c:4004:1"
       volumes:
          - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
          - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
@@ -117,7 +117,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}4004:2"
+            ipv6_address: "${IP6}d0c:4004:2"
       volumes:
          - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
       restart: on-failure
@@ -178,7 +178,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}4004:3"
+            ipv6_address: "${IP6}d0c:4004:3"
       volumes:
          - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
       restart: on-failure
@@ -209,7 +209,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}4004:4"
+            ipv6_address: "${IP6}d0c:4004:4"
       volumes:
          - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
       restart: on-failure
@@ -239,7 +239,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}5002:3"
+            ipv6_address: "${IP6}d0c:5002:3"
       volumes:
          - /home/administrator/.ssh/id_rsa.pub:/app_framework/system_conf/public-key.rsa
          - static_content:/static
@@ -276,7 +276,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}5002:2"
+            ipv6_address: "${IP6}d0c:5002:2"
          
    pgadmincop:
       image: dpage/pgadmin4
@@ -284,7 +284,7 @@ services:
       networks:
          cop:
          mgmt:
-            ipv6_address: "${IP6}5002:1"
+            ipv6_address: "${IP6}d0c:5002:1"
       ports:
          - "${PMS5}:5432:80"
       environment:
