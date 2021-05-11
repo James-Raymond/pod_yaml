@@ -98,8 +98,8 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
       volumes:
-         - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -131,7 +131,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqltotp
@@ -189,7 +189,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:3"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -220,7 +220,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -252,7 +252,7 @@ services:
          - "${PMS5}:80:80"
          - "${PMS5}:443:443"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/app_framework/system_conf/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
    
    apache:
       image: cloudcix/apiproxy:latest
@@ -370,8 +370,8 @@ services:
          - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
       volumes:
         - /etc/cloudcix/robot:/mnt/images
-        - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
-        - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+        - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
+        - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
       networks:
         region:
         mgmt:

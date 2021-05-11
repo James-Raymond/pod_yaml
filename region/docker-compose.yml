@@ -59,8 +59,8 @@ services:
          - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
       volumes:
          - /etc/cloudcix/robot:/mnt/images
-         - /home/administrator/.ssh/id_rsa:/root/.ssh/id_rsa
-         - /home/administrator/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
       networks:
          region:
          mgmt:

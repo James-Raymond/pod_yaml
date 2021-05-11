@@ -86,8 +86,8 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
       volumes:
-         - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -119,7 +119,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqltotp
@@ -151,8 +151,8 @@ services:
          - RELEASE=stable
       command: ['user_expiration_reminders']
       volumes:
-         - /home/administrator/.ssh/id_rsa:/application_framework/private-key.rsa
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
 
    iaas:
       image: cloudcix/iaas:latest
@@ -180,7 +180,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:3"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -211,7 +211,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/application_framework/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
@@ -241,7 +241,7 @@ services:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:3"
       volumes:
-         - /home/administrator/.ssh/id_rsa.pub:/app_framework/system_conf/public-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
          - static_content:/static
    
    apache:
