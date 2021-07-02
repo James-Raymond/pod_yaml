@@ -1,10 +1,6 @@
 version: '3'
 
 networks:
-   cop:
-      driver: bridge
-   region:
-      driver: bridge
    mgmt:
       driver: bridge
       enable_ipv6: true
@@ -28,7 +24,7 @@ services:
       image: osixia/openldap
       container_name: membershipldap
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
@@ -41,7 +37,7 @@ services:
       image: osixia/openldap-backup
       container_name: membershipldapbackup
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
          - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
@@ -54,17 +50,17 @@ services:
       image: cloudcix/pgsqlapi:latest
       container_name: pgsqlapi
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
       volumes:
          - /var/lib/pgsqlapi:/var/lib/postgresql/data/
-      
+
    pgsqltotp:
       image: cloudcix/pgsqltotp:latest
       container_name: pgsqltotp
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
       volumes:
@@ -94,7 +90,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
       volumes:
@@ -127,7 +122,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
       volumes:
@@ -135,12 +129,12 @@ services:
       restart: on-failure
       depends_on:
          - pgsqltotp
-         
+
    user_expiration_cron:
       image: cloudcix/membershipcron:latest
       container_name: user_expiration_cron
       networks:
-         cop:
+         mgmt:
       environment:
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
@@ -162,7 +156,10 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       command: ['user_expiration_reminders']
-   
+      volumes:
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
+
    iaas:
       image: cloudcix/iaas:latest
       container_name: iaas
@@ -185,7 +182,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:3"
       volumes:
@@ -193,7 +189,7 @@ services:
       restart: on-failure
       depends_on:
          - pgsqlapi
-            
+
    appmanager:
       image: cloudcix/appmanager:latest
       container_name: appmanager
@@ -216,7 +212,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
       volumes:
@@ -236,6 +231,7 @@ services:
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+         - CLOUDCIX_API_ID_MEMBER=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
          - SENTRY_URL=${COP_SENTRY_URL}
          - PAM_NAME=${COP_PAM_NAME}
@@ -245,63 +241,62 @@ services:
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
       networks:
-         cop:
          mgmt:
-            ipv6_address: "${IP6}d0c:5002:3"
-      ports:
-         - "${PMS5}:80:80"
-         - "${PMS5}:443:443"
+            ipv6_address: "${IP6}d0c:5002:4"
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
-   
-   apache:
+         - static_content:/static
+
+   apiproxy:
       image: cloudcix/apiproxy:latest
       container_name: apiproxy
       networks:
-         cop:
+         mgmt:
+            ipv6_address: "${IP6}d0c:4004:a"
       environment:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
       ports:
-         - "${PMS4}:80:80"
          - "${PMS4}:443:443"
+         - "${PMS5}:443:443"
       volumes:
+         - type: volume
+           source: static_content
+           target: /static
+           volume:
+              nocopy: true
          - type: volume
            source: letsencrypt
            target: /etc/letsencrypt
-           volume: 
+           volume:
               nocopy: true
-      
+
    apachedscop:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:2"
-         
+
    pgadmincop:
       image: dpage/pgadmin4
       container_name: pgadmincop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:1"
-      ports:
-         - "${PMS5}:5432:80"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
       depends_on:
          - pgsqlapi
          - pgsqltotp
- 
+
    seed_pgsql:
       image: cloudcix/seed:latest
       container_name: seed_pgsql
       networks:
-         cop:
+         mgmt:
       environment:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
@@ -327,7 +322,7 @@ services:
       image: cloudcix/robot:latest
       container_name: robot
       networks:
-         region:
+         mgmt:
       environment:
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - COP_NAME=${COP_NAME}
@@ -369,13 +364,12 @@ services:
          - EMAIL_PORT=${REGION_EMAIL_PORT}
          - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
       volumes:
-        - /etc/cloudcix/robot:/mnt/images
-        - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
-        - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
+         - /etc/cloudcix/robot:/mnt/images
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
       networks:
-        region:
-        mgmt:
-          ipv6_address: "${IP6}d0c:6001:1"
+         mgmt:
+            ipv6_address: "${IP6}d0c:6001:1"
       entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
 
    rabbitmq:
@@ -383,19 +377,18 @@ services:
       container_name: rabbitmq
       hostname: rabbitmq
       networks:
-         region:
-      
+        mgmt:
+
    flower:
       image: mher/flower:0.9.5
       container_name: flowerregion
-      ports:
-        - "${PMS6}:5555:5555"
       networks:
-        region:
-        mgmt:
-          ipv6_address: "${IP6}d0c:6002:4"
+         mgmt:
+            ipv6_address: "${IP6}d0c:6002:4"
+      ports:
+         - "${PMS6}:5555:5555"
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
 
-volumes:
 # cop volumes
    letsencrypt:
+   static_content:

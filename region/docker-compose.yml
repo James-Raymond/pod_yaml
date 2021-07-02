@@ -1,8 +1,6 @@
 version: '3'
 
 networks:
-   region:
-      driver: bridge
    mgmt:
       driver: bridge
       enable_ipv6: true
@@ -16,7 +14,7 @@ services:
       image: cloudcix/robot:latest
       container_name: robot
       networks:
-         region:
+         mgmt:
       environment:
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - COP_NAME=${COP_NAME}
@@ -62,7 +60,6 @@ services:
          - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
       networks:
-         region:
          mgmt:
             ipv6_address: "${IP6}d0c:6001:1"
       entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
@@ -72,15 +69,14 @@ services:
       container_name: rabbitmq
       hostname: rabbitmq
       networks:
-         region:
+        mgmt:
       
    flower:
       image: mher/flower:0.9.5
       container_name: flowerregion
-      ports:
-         - "${PMS6}:5555:5555"
       networks:
-         region:
          mgmt:
             ipv6_address: "${IP6}d0c:6002:4"
+      ports:
+         - "${PMS6}:5555:5555"
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/

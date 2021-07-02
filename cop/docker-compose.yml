@@ -1,8 +1,6 @@
 version: '3'
 
 networks:
-   cop:
-      driver: bridge
    mgmt:
       driver: bridge
       enable_ipv6: true
@@ -16,7 +14,7 @@ services:
       image: osixia/openldap
       container_name: membershipldap
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
@@ -29,7 +27,7 @@ services:
       image: osixia/openldap-backup
       container_name: membershipldapbackup
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
          - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
@@ -42,7 +40,7 @@ services:
       image: cloudcix/pgsqlapi:latest
       container_name: pgsqlapi
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
       volumes:
@@ -52,7 +50,7 @@ services:
       image: cloudcix/pgsqltotp:latest
       container_name: pgsqltotp
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
       volumes:
@@ -82,7 +80,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
       volumes:
@@ -115,7 +112,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
       volumes:
@@ -128,7 +124,7 @@ services:
       image: cloudcix/membershipcron:latest
       container_name: user_expiration_cron
       networks:
-         cop:
+         mgmt:
       environment:
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
@@ -176,7 +172,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:3"
       volumes:
@@ -207,7 +202,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
       volumes:
@@ -237,27 +231,25 @@ services:
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
       networks:
-         cop:
          mgmt:
-            ipv6_address: "${IP6}d0c:5002:3"
+            ipv6_address: "${IP6}d0c:5002:4"
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
          - static_content:/static
    
-   apache:
+   apiproxy:
       image: cloudcix/apiproxy:latest
       container_name: apiproxy
       networks:
-         cop:
+         mgmt:
+            ipv6_address: "${IP6}d0c:4004:a"
       environment:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
       ports:
-         - "${PMS5}:80:80"
-         - "${PMS5}:443:443"
-         - "${PMS4}:80:80"
          - "${PMS4}:443:443"
+         - "${PMS5}:443:443"
       volumes:
          - type: volume
            source: static_content
@@ -274,19 +266,15 @@ services:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:2"
-         
+
    pgadmincop:
       image: dpage/pgadmin4
       container_name: pgadmincop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:1"
-      ports:
-         - "${PMS5}:5432:80"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
@@ -298,7 +286,7 @@ services:
       image: cloudcix/seed:latest
       container_name: seed_pgsql
       networks:
-         cop:
+         mgmt:
       environment:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}

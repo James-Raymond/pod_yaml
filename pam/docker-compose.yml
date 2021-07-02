@@ -1,8 +1,6 @@
 version: '3'
 
 networks:
-   pam:
-      driver: bridge
    mgmt:
       driver: bridge
       enable_ipv6: true
@@ -25,7 +23,9 @@ services:
       image: cloudcix/pgsqlpam:latest
       container_name: pgsqlpam
       networks:
-         pam:
+         mgmt:
+         oob:
+            ipv4_address: "10.${pod_id}.0.7"
       environment:
             - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
       volumes:
@@ -36,11 +36,10 @@ services:
       image: dpage/pgadmin4
       container_name: pgadminpam
       networks:
-         pam:
-         oob:
-            ipv4_address: "10.${pod_id}.0.7"
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:1"
       ports:
-         - "${PMS3}:5432:80"
+         - "${PMS3}:443:443"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
@@ -51,13 +50,16 @@ services:
       image: cloudcix/pam:latest
       container_name: pam
       networks:
-         pam:
+         mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.6"
       environment:
          - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
          - PGSQLPAM_USER=${PGSQLPAM_USER}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
+         - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
+         - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
       depends_on:
          - pgsqlpam
       restart: on-failure
@@ -66,7 +68,7 @@ services:
       image: librenms/librenms
       container_name: librenms
       networks:
-         pam:
+         mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.4"
       environment:
@@ -81,9 +83,8 @@ services:
       image: mysql
       container_name: mysql
       networks:
-         pam:
-      ports:
-         - "3306:3306"
+         mgmt:
+            ipv6_address: "${IP6}d0c:3001:5"
       environment:
          - MYSQL_DATABASE=${MYSQL_DATABASE}
          - MYSQL_USER=${MYSQL_USER}
@@ -100,11 +101,10 @@ services:
       image: 2stacks/freeradius
       container_name: radius
       networks:
-         pam:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3004:6"
          oob:
             ipv4_address: "10.${pod_id}.0.3"
-      ports:
-         - "1812-1813:1812-1813/udp"
       environment:
          - DB_NAME=${MYSQL_DATABASE}
          - DB_HOST=mysql
@@ -122,11 +122,10 @@ services:
       image: ghcr.io/linuxserver/mysql-workbench
       container_name: mysql-workbench
       networks:
-         pam:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:2"
          oob:
             ipv4_address: "10.${pod_id}.0.8"
-      ports:
-         - 3000:3000
       environment:
          - PUID=1000
          - PGID=1000
@@ -138,15 +137,15 @@ services:
    jumphost:
       image: cloudcix/jumphost:latest
       container_name: jumphost
-      restart: always
       networks:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:3"
          oob:
             ipv4_address: "10.${pod_id}.0.5"
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:1"
       environment:
          - RESOLUTION=1280x720
          - USER=${JUMPHOST_USERNAME}
          - PASSWORD=${JUMPHOST_PASSWORD}
          - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
+      restart: always

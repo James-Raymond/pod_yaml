@@ -1,10 +1,6 @@
 version: '3'
 
 networks:
-   pam:
-      driver: bridge
-   cop:
-      driver: bridge
    mgmt:
       driver: bridge
       enable_ipv6: true
@@ -28,7 +24,9 @@ services:
       image: cloudcix/pgsqlpam:latest
       container_name: pgsqlpam
       networks:
-         pam:
+         mgmt:
+         oob:
+            ipv4_address: "10.${pod_id}.0.7"
       environment:
             - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
       volumes:
@@ -39,11 +37,10 @@ services:
       image: dpage/pgadmin4
       container_name: pgadminpam
       networks:
-         pam:
-         oob:
-            ipv4_address: "10.${pod_id}.0.7"
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:1"
       ports:
-         - "${PMS3}:5432:80"
+         - "${PMS3}:443:443"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
@@ -54,13 +51,16 @@ services:
       image: cloudcix/pam:latest
       container_name: pam
       networks:
-         pam:
+         mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.6"
       environment:
          - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
          - PGSQLPAM_USER=${PGSQLPAM_USER}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
+         - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
+         - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
       depends_on:
          - pgsqlpam
       restart: on-failure
@@ -69,7 +69,7 @@ services:
       image: librenms/librenms
       container_name: librenms
       networks:
-         pam:
+         mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.4"
       environment:
@@ -84,9 +84,8 @@ services:
       image: mysql
       container_name: mysql
       networks:
-         pam:
-      ports:
-         - "3306:3306"
+         mgmt:
+            ipv6_address: "${IP6}d0c:3001:5"
       environment:
          - MYSQL_DATABASE=${MYSQL_DATABASE}
          - MYSQL_USER=${MYSQL_USER}
@@ -103,11 +102,10 @@ services:
       image: 2stacks/freeradius
       container_name: radius
       networks:
-         pam:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3004:6"
          oob:
             ipv4_address: "10.${pod_id}.0.3"
-      ports:
-         - "1812-1813:1812-1813/udp"
       environment:
          - DB_NAME=${MYSQL_DATABASE}
          - DB_HOST=mysql
@@ -122,14 +120,13 @@ services:
       restart: always
 
    mysql-workbench:
-      image: linuxserver/mysql-workbench
+      image: ghcr.io/linuxserver/mysql-workbench
       container_name: mysql-workbench
       networks:
-         pam:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:2"
          oob:
             ipv4_address: "10.${pod_id}.0.8"
-      ports:
-         - 3000:3000
       environment:
          - PUID=1000
          - PGID=1000
@@ -142,10 +139,10 @@ services:
       image: cloudcix/jumphost:latest
       container_name: jumphost
       networks:
+         mgmt:
+            ipv6_address: "${IP6}d0c:3002:3"
          oob:
             ipv4_address: "10.${pod_id}.0.5"
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:1"
       environment:
          - RESOLUTION=1280x720
          - USER=${JUMPHOST_USERNAME}
@@ -159,7 +156,7 @@ services:
       image: osixia/openldap
       container_name: membershipldap
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
@@ -172,7 +169,7 @@ services:
       image: osixia/openldap-backup
       container_name: membershipldapbackup
       networks:
-         cop:
+         mgmt:
       environment:
          - LDAP_BACKUP_CONFIG_CRON_EXP="0 4 * * *"
          - LDAP_BACKUP_DATA_CRON_EXP="0 4 * * *"
@@ -185,17 +182,17 @@ services:
       image: cloudcix/pgsqlapi:latest
       container_name: pgsqlapi
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
       volumes:
          - /var/lib/pgsqlapi:/var/lib/postgresql/data/
-      
+
    pgsqltotp:
       image: cloudcix/pgsqltotp:latest
       container_name: pgsqltotp
       networks:
-         cop:
+         mgmt:
       environment:
          - POSTGRES_PASSWORD=${PGSQLTOTP_PASSWORD}
       volumes:
@@ -225,7 +222,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
       volumes:
@@ -258,7 +254,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
       volumes:
@@ -266,10 +261,12 @@ services:
       restart: on-failure
       depends_on:
          - pgsqltotp
-         
+
    user_expiration_cron:
       image: cloudcix/membershipcron:latest
       container_name: user_expiration_cron
+      networks:
+         mgmt:
       environment:
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
@@ -291,7 +288,10 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       command: ['user_expiration_reminders']
-   
+      volumes:
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
+
    iaas:
       image: cloudcix/iaas:latest
       container_name: iaas
@@ -314,7 +314,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:3"
       volumes:
@@ -322,7 +321,7 @@ services:
       restart: on-failure
       depends_on:
          - pgsqlapi
-            
+
    appmanager:
       image: cloudcix/appmanager:latest
       container_name: appmanager
@@ -345,7 +344,6 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - RELEASE=stable
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
       volumes:
@@ -365,6 +363,7 @@ services:
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+         - CLOUDCIX_API_ID_MEMBER=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
          - SENTRY_URL=${COP_SENTRY_URL}
          - PAM_NAME=${COP_PAM_NAME}
@@ -374,63 +373,62 @@ services:
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
       networks:
-         cop:
          mgmt:
-            ipv6_address: "${IP6}d0c:5002:3"
-      ports:
-         - "${PMS5}:80:80"
-         - "${PMS5}:443:443"
+            ipv6_address: "${IP6}d0c:5002:4"
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
-   
-   apache:
+         - static_content:/static
+
+   apiproxy:
       image: cloudcix/apiproxy:latest
       container_name: apiproxy
       networks:
-         cop:
+         mgmt:
+            ipv6_address: "${IP6}d0c:4004:a"
       environment:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
       ports:
-         - "${PMS4}:80:80"
          - "${PMS4}:443:443"
+         - "${PMS5}:443:443"
       volumes:
+         - type: volume
+           source: static_content
+           target: /static
+           volume:
+              nocopy: true
          - type: volume
            source: letsencrypt
            target: /etc/letsencrypt
-           volume: 
+           volume:
               nocopy: true
-      
+
    apachedscop:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:2"
-         
+
    pgadmincop:
       image: dpage/pgadmin4
       container_name: pgadmincop
       networks:
-         cop:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:1"
-      ports:
-         - "${PMS5}:5432:80"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINCOP_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINCOP_PASSWORD}
       depends_on:
          - pgsqlapi
          - pgsqltotp
- 
+
    seed_pgsql:
       image: cloudcix/seed:latest
       container_name: seed_pgsql
       networks:
-         cop:
+         mgmt:
       environment:
          - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
@@ -454,3 +452,4 @@ services:
 volumes:
 # cop volumes
    letsencrypt:
+   static_content:
