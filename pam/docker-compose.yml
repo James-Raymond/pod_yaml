@@ -31,7 +31,6 @@ services:
       volumes:
             - /var/lib/pgsqlpam:/var/lib/postgresql/data/
 
-
    pgadminpam:
       image: dpage/pgadmin4
       container_name: pgadminpam
@@ -75,8 +74,9 @@ services:
       environment:
          - DB_HOST=mysql
          - DB_NAME=${MYSQL_DATABASE}
-         - DB_USER=${MYSQL_USER}
          - DB_PASSWORD=${MYSQL_PASSWORD}
+         - DB_USER=${MYSQL_USER}
+         
       depends_on:
          - mysql
 
@@ -88,9 +88,9 @@ services:
             ipv6_address: "${IP6}d0c:3001:5"
       environment:
          - MYSQL_DATABASE=${MYSQL_DATABASE}
-         - MYSQL_USER=${MYSQL_USER}
          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+         - MYSQL_USER=${MYSQL_USER}
       volumes:
          - "/etc/cloudcix/docker/radius/data:/var/lib/mysql"
          - "/etc/cloudcix/docker/radius/radius.sql:/docker-entrypoint-initdb.d/radius.sql"
@@ -107,12 +107,12 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.3"
       environment:
-         - DB_NAME=${MYSQL_DATABASE}
          - DB_HOST=mysql
-         - DB_USER=${MYSQL_USER}
+         - DB_NAME=${MYSQL_DATABASE}
          - DB_PASS=${MYSQL_PASSWORD}
-         - RADIUS_KEY=${RADIUS_SECRET_KEY}
+         - DB_USER=${MYSQL_USER}
          - RAD_CLIENTS=10.0.0.0/8
+         - RADIUS_KEY=${RADIUS_SECRET_KEY}
       depends_on:
          - mysql
       links:
@@ -128,8 +128,8 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.8"
       environment:
-         - PUID=1000
          - PGID=1000
+         - PUID=1000
          - TZ=Europe/Dublin
       cap_add:
          - IPC_LOCK
@@ -144,9 +144,9 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.5"
       environment:
+         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
+         - PASSWORD=${JUMPHOST_PASSWORD}
          - RESOLUTION=1280x720
          - USER=${JUMPHOST_USERNAME}
-         - PASSWORD=${JUMPHOST_PASSWORD}
-         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
       restart: always

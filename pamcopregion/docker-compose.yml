@@ -19,8 +19,7 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-# pam containers
-
+   # pam containers
    pgsqlpam:
       image: cloudcix/pgsqlpam:latest
       container_name: pgsqlpam
@@ -47,7 +46,7 @@ services:
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
       depends_on:
          - pgsqlpam
-
+                  
    pam:
       image: cloudcix/pam:latest
       container_name: pam
@@ -77,8 +76,9 @@ services:
       environment:
          - DB_HOST=mysql
          - DB_NAME=${MYSQL_DATABASE}
-         - DB_USER=${MYSQL_USER}
          - DB_PASSWORD=${MYSQL_PASSWORD}
+         - DB_USER=${MYSQL_USER}
+         
       depends_on:
          - mysql
 
@@ -90,9 +90,9 @@ services:
             ipv6_address: "${IP6}d0c:3001:5"
       environment:
          - MYSQL_DATABASE=${MYSQL_DATABASE}
-         - MYSQL_USER=${MYSQL_USER}
          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+         - MYSQL_USER=${MYSQL_USER}
       volumes:
          - "/etc/cloudcix/docker/radius/data:/var/lib/mysql"
          - "/etc/cloudcix/docker/radius/radius.sql:/docker-entrypoint-initdb.d/radius.sql"
@@ -109,12 +109,12 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.3"
       environment:
-         - DB_NAME=${MYSQL_DATABASE}
          - DB_HOST=mysql
-         - DB_USER=${MYSQL_USER}
+         - DB_NAME=${MYSQL_DATABASE}
          - DB_PASS=${MYSQL_PASSWORD}
-         - RADIUS_KEY=${RADIUS_SECRET_KEY}
+         - DB_USER=${MYSQL_USER}
          - RAD_CLIENTS=10.0.0.0/8
+         - RADIUS_KEY=${RADIUS_SECRET_KEY}
       depends_on:
          - mysql
       links:
@@ -130,8 +130,8 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.8"
       environment:
-         - PUID=1000
          - PGID=1000
+         - PUID=1000
          - TZ=Europe/Dublin
       cap_add:
          - IPC_LOCK
@@ -146,23 +146,23 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.5"
       environment:
+         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
+         - PASSWORD=${JUMPHOST_PASSWORD}
          - RESOLUTION=1280x720
          - USER=${JUMPHOST_USERNAME}
-         - PASSWORD=${JUMPHOST_PASSWORD}
-         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
       restart: always
 
-# cop containers
+   # cop containers
    membershipldap:
       image: osixia/openldap
       container_name: membershipldap
       networks:
          mgmt:
       environment:
-         - LDAP_ORGANISATION=${ORGANIZATION_URL}
-         - LDAP_DOMAIN=${ORGANIZATION_URL}
          - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - LDAP_DOMAIN=${ORGANIZATION_URL}
+         - LDAP_ORGANISATION=${ORGANIZATION_URL}
       volumes:
          - /data/slapd/membershipldap/database:/var/lib/ldap
          - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
@@ -189,7 +189,7 @@ services:
          - POSTGRES_PASSWORD=${PGSQLAPI_PASSWORD}
       volumes:
          - /var/lib/pgsqlapi:/var/lib/postgresql/data/
-
+      
    pgsqltotp:
       image: cloudcix/pgsqltotp:latest
       container_name: pgsqltotp
@@ -204,24 +204,23 @@ services:
       image: cloudcix/membership:latest
       container_name: membership
       environment:
-         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
-         - PGSQL_USER=${PGSQLAPI_USER}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - PORTAL_NAME=${PORTAL_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
-         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
+         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
       networks:
          mgmt:
@@ -238,21 +237,23 @@ services:
       image: cloudcix/otp:latest
       container_name: otp
       environment:
-         - PGSQLTOTP_USER=${PGSQLTOTP_USER}
-         - PGSQLTOTP_PASSWORD=${PGSQLTOTP_PASSWORD}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - PGSQLTOTP_PASSWORD=${PGSQLTOTP_PASSWORD}
+         - PGSQLTOTP_USER=${PGSQLTOTP_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
       networks:
          mgmt:
@@ -262,31 +263,30 @@ services:
       restart: on-failure
       depends_on:
          - pgsqltotp
-
+         
    user_expiration_cron:
       image: cloudcix/membershipcron:latest
       container_name: user_expiration_cron
       networks:
          mgmt:
       environment:
-         - PGSQL_USER=${PGSQLAPI_USER}
-         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - PORTAL_NAME=${PORTAL_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
-         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
+         - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
       command: ['user_expiration_reminders']
       volumes:
@@ -296,51 +296,50 @@ services:
    iaas:
       image: cloudcix/iaas:latest
       container_name: iaas
-      environment:
-         - PGSQL_USER=${PGSQLAPI_USER}
-         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
-         - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
-         - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
-         - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
-         - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
-         - EMAIL_PORT=${COP_EMAIL_PORT}
-         - RELEASE=stable
       networks:
          mgmt:
-            ipv6_address: "${IP6}d0c:4004:3"
+      environment:
+         - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
+         - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
+         - EMAIL_HOST=${COP_EMAIL_HOST}
+         - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
+         - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
+         - RELEASE=stable
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
-
+            
    appmanager:
       image: cloudcix/appmanager:latest
       container_name: appmanager
       environment:
-         - PGSQL_USER=${PGSQLAPI_USER}
-         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
       networks:
          mgmt:
@@ -355,29 +354,30 @@ services:
       image: cloudcix/cop:latest
       container_name: cop
       environment:
-         - PGSQL_USER=${PGSQLAPI_USER}
-         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_ID_MEMBER=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
-         - SENTRY_URL=${COP_SENTRY_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - CLOUDCIX_API_USERNAME=${CLOUDCIX_API_USERNAME}
          - EMAIL_HOST=${COP_EMAIL_HOST}
-         - EMAIL_USER=${COP_EMAIL_USER}
          - EMAIL_PASSWORD=${COP_EMAIL_PASSWORD}
          - EMAIL_PORT=${COP_EMAIL_PORT}
+         - EMAIL_USER=${COP_EMAIL_USER}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - PAM_NAME=${PAM_NAME}
+         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - PGSQL_USER=${PGSQLAPI_USER}
+         - POD_NAME=${POD_NAME}
+         - POD_SECRET_KEY=${POD_SECRET_KEY}
+         - PORTAL_NAME=${PORTAL_NAME}
+         - RELEASE=stable
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:4"
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
          - static_content:/static
-
+   
    apiproxy:
       image: cloudcix/apiproxy:latest
       container_name: apiproxy
@@ -400,9 +400,9 @@ services:
          - type: volume
            source: letsencrypt
            target: /etc/letsencrypt
-           volume:
+           volume: 
               nocopy: true
-
+      
    apachedscop:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
@@ -422,7 +422,7 @@ services:
       depends_on:
          - pgsqlapi
          - pgsqltotp
-
+ 
    seed_pgsql:
       image: cloudcix/seed:latest
       container_name: seed_pgsql
@@ -435,41 +435,40 @@ services:
          - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
          - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - POD_NAME=${POD_NAME}
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
+         - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
       restart: on-failure
       depends_on:
-         - pgsqlapi
-         - membership
-         - membershipldap
          - appmanager
          - iaas
+         - membership
+         - membershipldap
          - otp
+         - pgsqlapi
 
-# region containers
+   # region containers
    robot:
       image: cloudcix/robot:latest
       container_name: robot
       networks:
          mgmt:
       environment:
-         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - COP_NAME=${COP_NAME}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - ROBOT_API_KEY=${ROBOT_API_KEY}
-         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
-         - SENTRY_URL=${REGION_SENTRY_URL}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
          - EMAIL_HOST=${REGION_EMAIL_HOST}
-         - EMAIL_USER=${REGION_EMAIL_USER}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
          - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
          - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
          - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
       volumes:
          - /home/administrator/celerybeat:/opt/robot/celerybeat
@@ -479,21 +478,21 @@ services:
       image: cloudcix/robot:latest
       container_name: robotworker
       environment:
-         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - COP_NAME=${COP_NAME}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - ROBOT_API_KEY=${ROBOT_API_KEY}
-         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
-         - SENTRY_URL=${SENTRY_URL}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
          - EMAIL_HOST=${REGION_EMAIL_HOST}
-         - EMAIL_USER=${REGION_EMAIL_USER}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
          - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
          - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
       volumes:
          - /etc/cloudcix/robot:/mnt/images
          - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
