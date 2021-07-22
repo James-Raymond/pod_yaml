@@ -51,6 +51,7 @@ services:
       container_name: pam
       networks:
          mgmt:
+            ipv6_address: "${IP6}d0c:3002:4"
          oob:
             ipv4_address: "10.${pod_id}.0.6"
       environment:
