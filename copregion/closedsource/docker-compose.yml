@@ -385,6 +385,7 @@ services:
          - "${PMS6}:5555:5555"
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
 
-# cop volumes
+volumes:
+  # cop volumes
    letsencrypt:
    static_content:

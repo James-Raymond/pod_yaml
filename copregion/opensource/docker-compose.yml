@@ -19,140 +19,6 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-   # pam containers
-   pgsqlpam:
-      image: cloudcix/pgsqlpam:latest
-      container_name: pgsqlpam
-      networks:
-         mgmt:
-         oob:
-            ipv4_address: "10.${pod_id}.0.7"
-      environment:
-            - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
-      volumes:
-            - /var/lib/pgsqlpam:/var/lib/postgresql/data/
-
-
-   pgadminpam:
-      image: dpage/pgadmin4
-      container_name: pgadminpam
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:1"
-      ports:
-         - "${PMS3}:443:443"
-      environment:
-         - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
-         - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
-      depends_on:
-         - pgsqlpam
-                  
-   pam:
-      image: cloudcix/pam:latest
-      container_name: pam
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:4"
-         oob:
-            ipv4_address: "10.${pod_id}.0.6"
-      environment:
-         - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
-         - PGSQLPAM_USER=${PGSQLPAM_USER}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-         - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
-         - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
-         - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
-      depends_on:
-         - pgsqlpam
-      restart: on-failure
-
-   librenms:
-      image: librenms/librenms
-      container_name: librenms
-      networks:
-         mgmt:
-         oob:
-            ipv4_address: "10.${pod_id}.0.4"
-      environment:
-         - DB_HOST=mysql
-         - DB_NAME=${MYSQL_DATABASE}
-         - DB_PASSWORD=${MYSQL_PASSWORD}
-         - DB_USER=${MYSQL_USER}
-         
-      depends_on:
-         - mysql
-
-   mysql:
-      image: mysql
-      container_name: mysql
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3001:5"
-      environment:
-         - MYSQL_DATABASE=${MYSQL_DATABASE}
-         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-         - MYSQL_USER=${MYSQL_USER}
-      volumes:
-         - "/etc/cloudcix/docker/radius/data:/var/lib/mysql"
-         - "/etc/cloudcix/docker/radius/radius.sql:/docker-entrypoint-initdb.d/radius.sql"
-      command: --default-authentication-plugin=mysql_native_password
-      restart: always
-
-
-   radius:
-      image: 2stacks/freeradius
-      container_name: radius
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3004:6"
-         oob:
-            ipv4_address: "10.${pod_id}.0.3"
-      environment:
-         - DB_HOST=mysql
-         - DB_NAME=${MYSQL_DATABASE}
-         - DB_PASS=${MYSQL_PASSWORD}
-         - DB_USER=${MYSQL_USER}
-         - RAD_CLIENTS=10.0.0.0/8
-         - RADIUS_KEY=${RADIUS_SECRET_KEY}
-      depends_on:
-         - mysql
-      links:
-         - mysql
-      restart: always
-
-   mysql-workbench:
-      image: ghcr.io/linuxserver/mysql-workbench
-      container_name: mysql-workbench
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:2"
-         oob:
-            ipv4_address: "10.${pod_id}.0.8"
-      environment:
-         - PGID=1000
-         - PUID=1000
-         - TZ=Europe/Dublin
-      cap_add:
-         - IPC_LOCK
-      restart: unless-stopped
-
-   jumphost:
-      image: cloudcix/jumphost:latest
-      container_name: jumphost
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:3"
-         oob:
-            ipv4_address: "10.${pod_id}.0.5"
-      environment:
-         - HTTP_PASSWORD=${JUMPHOST_HTTP_PASSWORD}
-         - PASSWORD=${JUMPHOST_PASSWORD}
-         - RESOLUTION=1280x720
-         - USER=${JUMPHOST_USERNAME}
-         - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
-      restart: always
-
    # cop containers
    membershipldap:
       image: osixia/openldap
@@ -504,7 +370,7 @@ services:
 
    rabbitmq:
       image: rabbitmq
-      container_name: rabbitmq
+      container_name: rabbitmqregion
       hostname: rabbitmq
       networks:
         mgmt:
@@ -520,6 +386,6 @@ services:
       entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
 
 volumes:
-# cop volumes
+   # cop volumes
    letsencrypt:
    static_content:

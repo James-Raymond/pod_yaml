@@ -1,0 +1,80 @@
+version: '3'
+
+networks:
+   mgmt:
+      driver: bridge
+      enable_ipv6: true
+      ipam:
+         config:
+            - subnet: "${IP6}d0c:0:1/96"
+              gateway: "${IP6}d0c:0:1"
+
+services:
+   robot:
+      image: cloudcix/robot:latest
+      container_name: robot
+      networks:
+         mgmt:
+      environment:
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - COP_NAME=${COP_NAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - EMAIL_HOST=${REGION_EMAIL_HOST}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
+         - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
+      volumes:
+         - /home/administrator/celerybeat:/opt/robot/celerybeat
+      entrypoint: supervisord
+
+   robotworker:
+      image: cloudcix/robot:latest
+      container_name: robotworker
+      environment:
+         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
+         - COP_NAME=${COP_NAME}
+         - POD_NAME=${POD_NAME}
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - ROBOT_API_KEY=${ROBOT_API_KEY}
+         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
+         - PAM_NAME=${REGION_PAM_NAME}
+         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - EMAIL_HOST=${REGION_EMAIL_HOST}
+         - EMAIL_USER=${REGION_EMAIL_USER}
+         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
+         - EMAIL_PORT=${REGION_EMAIL_PORT}
+         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
+      volumes:
+         - /etc/cloudcix/robot:/mnt/images
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
+      networks:
+         mgmt:
+            ipv6_address: "${IP6}d0c:6001:1"
+      entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
+
+   rabbitmq:
+      image: rabbitmq
+      container_name: rabbitmq
+      hostname: rabbitmq
+      networks:
+        mgmt:
+      
+   flower:
+      image: mher/flower:0.9.5
+      container_name: flowerregion
+      networks:
+         mgmt:
+            ipv6_address: "${IP6}d0c:6002:4"
+      ports:
+         - "${PMS6}:5555:5555"
+      entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/

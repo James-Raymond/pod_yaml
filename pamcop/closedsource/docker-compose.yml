@@ -19,7 +19,7 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-# pam containers
+   # pam containers
    pgsqlpam:
       image: cloudcix/pgsqlpam:latest
       container_name: pgsqlpam
@@ -45,7 +45,7 @@ services:
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
       depends_on:
          - pgsqlpam
-                  
+
    pam:
       image: cloudcix/pam:latest
       container_name: pam
@@ -77,7 +77,7 @@ services:
          - DB_NAME=${MYSQL_DATABASE}
          - DB_PASSWORD=${MYSQL_PASSWORD}
          - DB_USER=${MYSQL_USER}
-         
+
       depends_on:
          - mysql
 
@@ -152,7 +152,7 @@ services:
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
       restart: always
 
-# cop containers
+   # cop containers
    membershipldap:
       image: osixia/openldap
       container_name: membershipldap
@@ -448,6 +448,6 @@ services:
          - pgsqlapi
          
 volumes:
-# cop volumes
+   # cop volumes
    letsencrypt:
    static_content:
