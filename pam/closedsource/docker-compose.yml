@@ -317,7 +317,6 @@ services:
          - ./nginx.conf:/etc/nginx/nginx.conf
          - /etc/nginx/certs:/etc/nginx/certs
       depends_on:
-         - chronograf
          - daedalus
          - elasticsearch
          - grafana
