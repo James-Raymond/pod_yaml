@@ -285,12 +285,11 @@ services:
    majora:
       image: cloudcix/majora:latest
       container_name: majora
-      network_mode: "host"
+      networks:
+         mgmt:
       depends_on:
          - daedalus
          - nginxpam
-      extra_hosts:
-         daedalus: 127.0.0.1
 
    icarus:
       image: cloudcix/icarus:latest
