@@ -268,7 +268,7 @@ services:
       image: cloudcix/daedalus:latest
       container_name: daedalus
       depends_on:
-         - pgsqldaedalus
+         - pgsqlpam
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:7"
