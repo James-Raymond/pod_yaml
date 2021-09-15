@@ -199,23 +199,6 @@ services:
       volumes:
          - /docker/logstash/conf:/usr/share/logstash/pipeline
 
-   jaeger-collector:
-      image: jaegertracing/jaeger-collector:latest
-      container_name: jaeger-collector
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3003:2"
-      command: []
-      environment:
-         SPAN_STORAGE_TYPE: elasticsearch
-         ES_NUM_REPLICAS: 0
-         ES_NUM_SHARDS: 1
-         ES_SERVER_URLS: http://elasticsearch:9200
-      ports:
-         - 14268:14268
-         - 9411:9411
-      restart: on-failure
-
    jaeger:
       image: jaegertracing/jaeger-query:latest
       container_name: jaeger
