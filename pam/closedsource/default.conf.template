@@ -361,7 +361,7 @@ server {
         chunked_transfer_encoding off;
 
         client_max_body_size 10M;
-        proxy_pass http://icarus;
+        proxy_pass http://pam;
     }
 
     ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
