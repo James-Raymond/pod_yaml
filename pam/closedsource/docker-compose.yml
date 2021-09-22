@@ -60,6 +60,8 @@ services:
          - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
          - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
          - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
+      volumes:
+         - pam_static_volume:/pam/_static
       depends_on:
          - pgsqlpam
       restart: on-failure
@@ -315,6 +317,7 @@ services:
       volumes:
          - ./templates:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
+         - pam_static_volume:/pam/_static
       depends_on:
          - daedalus
          - elasticsearch
@@ -324,7 +327,10 @@ services:
          - jaeger
          - kibana
          - logstash
+         - pam
 
 volumes:
-    influxdb-storage:
-    grafana-storage:
+   # pam volumes
+   influxdb-storage:
+   grafana-storage:
+   pam_static_volume:
