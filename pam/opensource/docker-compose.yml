@@ -63,7 +63,7 @@ services:
       depends_on:
          - pgsqlpam
       volumes:
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       restart: on-failure
 
    librenms:
@@ -168,7 +168,7 @@ services:
       volumes:
          - ./templates:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       depends_on:
          - pam
 

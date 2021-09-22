@@ -63,7 +63,7 @@ services:
          - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
          - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
       volumes:
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       depends_on:
          - pgsqlpam
       restart: on-failure
@@ -319,7 +319,7 @@ services:
       volumes:
          - ./templates:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       depends_on:
          - daedalus
          - elasticsearch

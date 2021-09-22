@@ -62,7 +62,7 @@ services:
          - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
          - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
       volumes:
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       depends_on:
          - pgsqlpam
       restart: on-failure
@@ -169,7 +169,7 @@ services:
       volumes:
          - ./templates:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/pam/_static
+         - pam_static_volume:/app/_static
       depends_on:
          - pam
 
@@ -467,25 +467,6 @@ services:
          - membershipldap
          - otp
          - pgsqlapi
-
-   # NGINX
-   nginxpam:
-      image: nginx:1.19.2-alpine
-      container_name: nginxpam
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3004:a"
-      environment:
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-      ports:
-         - "443:443"
-      volumes:
-         - ./templates:/etc/nginx/templates
-         - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/pam/_static
-      depends_on:
-         - pam
 
 volumes:
    # pam volumes

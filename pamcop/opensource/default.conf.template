@@ -16,7 +16,7 @@ server {
     proxy_buffering off;
 
     location /static/ {
-        alias /pam/_static/;
+        alias /app/_static/;
         add_header Access-Control-Allow-Origin *;
     }
 
