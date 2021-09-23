@@ -230,6 +230,7 @@ services:
          SPAN_STORAGE_TYPE: elasticsearch
          ES_SERVER_URLS: http://elasticsearch:9200
       ports:
+         - 16685:16685
          - 16686:16686
       restart: on-failure
 
@@ -565,6 +566,7 @@ services:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
+         - PORTAL_NAME=${PORTAL_NAME}
       ports:
          - "${PMS4}:443:443"
          - "${PMS5}:443:443"

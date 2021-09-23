@@ -409,6 +409,7 @@ services:
          - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
+         - PORTAL_NAME=${PORTAL_NAME}
       ports:
          - "${PMS4}:443:443"
          - "${PMS5}:443:443"
