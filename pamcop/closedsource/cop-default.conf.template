@@ -1,0 +1,189 @@
+upstream membership {
+    server membership:443;
+    }
+
+server {
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  membership.$POD_NAME.$ORGANIZATION_URL;
+
+    # To allow special characters in headers
+    ignore_invalid_headers off;
+    # Allow any size file to be uploaded.
+    # Set to a value such as 1000m; to restrict file size to a specific value
+    client_max_body_size 0;
+    # To disable buffering
+    proxy_buffering off;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 300;
+        # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        chunked_transfer_encoding off;
+
+        client_max_body_size 10M;
+        proxy_pass http://membership;
+    }
+
+    ssl_certificate /etc/nginx/certs/membership.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/membership.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+}
+
+upstream otp {
+    server otp:443;
+    }
+
+server {
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  otp.$POD_NAME.$ORGANIZATION_URL;
+
+    # To allow special characters in headers
+    ignore_invalid_headers off;
+    # Allow any size file to be uploaded.
+    # Set to a value such as 1000m; to restrict file size to a specific value
+    client_max_body_size 0;
+    # To disable buffering
+    proxy_buffering off;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 300;
+        # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        chunked_transfer_encoding off;
+
+        client_max_body_size 10M;
+        proxy_pass http://otp;
+    }
+
+    ssl_certificate /etc/nginx/certs/otp.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/otp.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+}
+
+upstream iaas {
+    server iaas:443;
+    }
+
+server {
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  iaas.$POD_NAME.$ORGANIZATION_URL;
+
+    # To allow special characters in headers
+    ignore_invalid_headers off;
+    # Allow any size file to be uploaded.
+    # Set to a value such as 1000m; to restrict file size to a specific value
+    client_max_body_size 0;
+    # To disable buffering
+    proxy_buffering off;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 300;
+        # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        chunked_transfer_encoding off;
+
+        client_max_body_size 10M;
+        proxy_pass http://iaas;
+    }
+
+    ssl_certificate /etc/nginx/certs/iaas.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/iaas.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+}
+
+upstream appmanager {
+    server appmanager:443;
+    }
+
+server {
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  appmanager.$POD_NAME.$ORGANIZATION_URL;
+
+    # To allow special characters in headers
+    ignore_invalid_headers off;
+    # Allow any size file to be uploaded.
+    # Set to a value such as 1000m; to restrict file size to a specific value
+    client_max_body_size 0;
+    # To disable buffering
+    proxy_buffering off;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 300;
+        # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        chunked_transfer_encoding off;
+
+        client_max_body_size 10M;
+        proxy_pass http://appmanager;
+    }
+
+    ssl_certificate /etc/nginx/certs/appmanager.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/appmanager.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+}
+
+upstream cop {
+    server cop:443;
+    }
+
+server {
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  $PORTAL_NAME.$ORGANIZATION_URL;
+
+    # To allow special characters in headers
+    ignore_invalid_headers off;
+    # Allow any size file to be uploaded.
+    # Set to a value such as 1000m; to restrict file size to a specific value
+    client_max_body_size 0;
+    # To disable buffering
+    proxy_buffering off;
+
+    location /static/ {
+        alias /app_framework/static/;
+        add_header Access-Control-Allow-Origin *;
+    }
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_connect_timeout 300;
+        # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        chunked_transfer_encoding off;
+
+        client_max_body_size 10M;
+        proxy_pass http://cop;
+    }
+
+    ssl_certificate /etc/nginx/certs/$PORTAL_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/$PORTAL_NAME.$ORGANIZATION_URL/privkey.pem;
+}

@@ -314,10 +314,8 @@ services:
       environment:
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-      ports:
-         - "443:443"
       volumes:
-         - ./templates:/etc/nginx/templates
+         - ./templates/pam:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
          - pam_static_volume:/app/_static
       depends_on:

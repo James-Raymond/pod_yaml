@@ -315,10 +315,8 @@ services:
       environment:
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-      ports:
-         - "443:443"
       volumes:
-         - ./templates:/etc/nginx/templates
+         - ./templates/pam:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
          - pam_static_volume:/app/_static
       depends_on:
@@ -555,33 +553,7 @@ services:
             ipv6_address: "${IP6}d0c:5002:4"
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
-         - static_content:/static
-   
-   apiproxy:
-      image: cloudcix/apiproxy:latest
-      container_name: apiproxy
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:4004:a"
-      environment:
-         - ADMIN_EMAIL=${LETS_ENCRYPT_ADMIN_EMAIL}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - POD_NAME=${POD_NAME}
-         - PORTAL_NAME=${PORTAL_NAME}
-      ports:
-         - "${PMS4}:443:443"
-         - "${PMS5}:443:443"
-      volumes:
-         - type: volume
-           source: static_content
-           target: /static
-           volume:
-              nocopy: true
-         - type: volume
-           source: letsencrypt
-           target: /etc/letsencrypt
-           volume: 
-              nocopy: true
+         - cop_static_content:/static
       
    apachedscop:
       image: tgbyte/apacheds:latest
@@ -627,6 +599,30 @@ services:
          - membershipldap
          - otp
          - pgsqlapi
+
+   nginxcop:
+      image: nginx:1.19.2-alpine
+      container_name: nginxcop
+      networks:
+         mgmt:
+            ipv6_address: "${IP6}d0c:4004:a"
+      environment:
+         - ORGANIZATION_URL=${ORGANIZATION_URL}
+         - POD_NAME=${POD_NAME}
+         - PORTAL_NAME=${PORTAL_NAME}
+      ports:
+         - "${PMS4}:443:443"
+         - "${PMS5}:443:443"
+      volumes:
+         - ./templates/cop:/etc/nginx/templates
+         - /etc/nginx/certs:/etc/nginx/certs
+         - cop_static_content:/static
+      depends_on:
+         - memberhip
+         - otp
+         - iaas
+         - appmanager
+         - cop
 
    # region containers
    robot:
@@ -703,5 +699,4 @@ volumes:
    # pam volumes
    pam_static_volume:
    # cop volumes
-   letsencrypt:
-   static_content:
+   cop_static_content:

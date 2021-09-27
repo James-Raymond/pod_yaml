@@ -39,3 +39,4 @@ server {
     ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/privkey.pem;
 }
+
