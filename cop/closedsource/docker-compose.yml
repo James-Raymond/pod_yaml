@@ -233,6 +233,7 @@ services:
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
          - cop_static_content:/static
+      restart: on-failure
       
    apachedscop:
       image: tgbyte/apacheds:latest
@@ -297,7 +298,7 @@ services:
          - /etc/nginx/certs:/etc/nginx/certs
          - cop_static_content:/static
       depends_on:
-         - memberhip
+         - membership
          - otp
          - iaas
          - appmanager
