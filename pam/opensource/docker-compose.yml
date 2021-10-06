@@ -64,6 +64,9 @@ services:
          - pgsqlpam
       volumes:
          - pam_static_volume:/app/_static
+         - /etc/cloudcix/docker/ssl_certs:/ssl_certs
+         - /home/administrator/.ssh/id_rsa_0:/root/.ssh/id_rsa
+         - /home/administartor/.ssh/id_rsa_0.pub:/root/.ssh/id_rsa.pub
       restart: on-failure
 
    librenms:
