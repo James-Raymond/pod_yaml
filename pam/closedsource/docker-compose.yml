@@ -233,7 +233,6 @@ services:
          ES_SERVER_URLS: http://elasticsearch:9200
       ports:
          - 16685:16685
-         - 16685:16685
          - 16686:16686
       restart: on-failure
 
