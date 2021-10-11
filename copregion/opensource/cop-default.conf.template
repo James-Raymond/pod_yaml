@@ -31,8 +31,8 @@ server {
         proxy_pass http://membership;
     }
 
-    ssl_certificate /etc/nginx/certs/membership.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/membership.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+    ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/privkey.pem;
 }
 
 upstream otp {
@@ -68,8 +68,8 @@ server {
         proxy_pass http://otp;
     }
 
-    ssl_certificate /etc/nginx/certs/otp.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/otp.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+    ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/privkey.pem;
 }
 
 upstream iaas {
@@ -105,8 +105,8 @@ server {
         proxy_pass http://iaas;
     }
 
-    ssl_certificate /etc/nginx/certs/iaas.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/iaas.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+    ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/privkey.pem;
 }
 
 upstream appmanager {
@@ -142,8 +142,8 @@ server {
         proxy_pass http://appmanager;
     }
 
-    ssl_certificate /etc/nginx/certs/appmanager.$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/appmanager.$POD_NAME.$ORGANIZATION_URL/privkey.pem;
+    ssl_certificate /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/$POD_NAME.$ORGANIZATION_URL/privkey.pem;
 }
 
 upstream cop {
