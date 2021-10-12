@@ -636,6 +636,8 @@ services:
          mgmt:
       environment:
          - COP_NAME=${COP_NAME}
+         - COP_ORGANIZATION_URL=${COP_ORGANIZATION_URL}
+         - COP_PORTAL=${PORTAL_NAME}
          - EMAIL_HOST=${REGION_EMAIL_HOST}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
          - EMAIL_PORT=${REGION_EMAIL_PORT}
@@ -657,6 +659,8 @@ services:
       container_name: robotworker
       environment:
          - COP_NAME=${COP_NAME}
+         - COP_ORGANIZATION_URL=${COP_ORGANIZATION_URL}
+         - COP_PORTAL=${PORTAL_NAME}
          - EMAIL_HOST=${REGION_EMAIL_HOST}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
          - EMAIL_PORT=${REGION_EMAIL_PORT}
