@@ -28,9 +28,7 @@ services:
          - EMAIL_HOST=${REGION_EMAIL_HOST}
          - EMAIL_USER=${REGION_EMAIL_USER}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
-         - EMAIL_PORT=${REGION_EMAIL_PORT}
-         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
-         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
+         - EMAIL_PORT=${REGION_EMAIL_PORT}     
       volumes:
          - /home/administrator/celerybeat:/opt/robot/celerybeat
       entrypoint: supervisord
@@ -52,7 +50,6 @@ services:
          - EMAIL_USER=${REGION_EMAIL_USER}
          - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
          - EMAIL_PORT=${REGION_EMAIL_PORT}
-         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
       volumes:
          - /etc/cloudcix/robot:/mnt/images
          - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa

@@ -329,13 +329,11 @@ services:
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - PAM_NAME=${REGION_PAM_NAME}
          - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
-         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - ROBOT_API_KEY=${ROBOT_API_KEY}
          - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
          - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
       volumes:
          - /home/administrator/celerybeat:/opt/robot/celerybeat
       entrypoint: supervisord
@@ -352,13 +350,11 @@ services:
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
          - PAM_NAME=${REGION_PAM_NAME}
          - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
-         - POD_EMAIL_USERNAME=${POD_EMAIL_USERNAME}
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - ROBOT_API_KEY=${ROBOT_API_KEY}
          - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
          - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - VIRTUAL_ROUTERS_ENABLED=${VIRTUAL_ROUTERS_ENABLED}
       volumes:
          - /etc/cloudcix/robot:/mnt/images
          - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
