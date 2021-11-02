@@ -304,8 +304,6 @@ services:
       command: ["--reporter.grpc.host-port=collector.${PAM_NAME}.${PAM_ORGANIZATION_URL}:14250"]
       networks:
          mgmt:
-      # environment:
-      #   - COLLECTOR_HOST_PORT=collector.${PAM_NAME}.${PAM_ORGANIZATION_URL}:14267
       restart: on-failure
 
    nginxcop:

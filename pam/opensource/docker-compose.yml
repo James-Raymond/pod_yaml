@@ -19,7 +19,6 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-   # Opensource
    pgsqlpam:
       image: cloudcix/pgsqlpam:latest
       container_name: pgsqlpam
