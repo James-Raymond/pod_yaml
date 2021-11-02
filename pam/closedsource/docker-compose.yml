@@ -183,9 +183,13 @@ services:
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:9"
+      ports:
+         - 5601:5601
       environment:
          ELASTICSEARCH_URL: http://elasticsearch:9200
          ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      depends_on:
+        - elasticsearch
 
    logstash:
       image: docker.elastic.co/logstash/logstash:7.15.1
@@ -197,6 +201,8 @@ services:
          - xpack.monitoring.elasticsearch.url=http://elasticsearch:9200
       volumes:
          - /docker/logstash/conf:/usr/share/logstash/pipeline
+      depends_on:
+        - elasticsearch
    
    jaeger-collector:
       image: jaegertracing/jaeger-collector:latest
