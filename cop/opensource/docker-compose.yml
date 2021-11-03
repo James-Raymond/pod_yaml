@@ -19,6 +19,7 @@ services:
          - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
+         - LDAP_TLS=false
       volumes:
          - /data/slapd/membershipldap/database:/var/lib/ldap
          - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
@@ -154,6 +155,7 @@ services:
       container_name: iaas
       networks:
          mgmt:
+            ipv6_address: "${IP6}d0c:4004:3"
       environment:
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}

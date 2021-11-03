@@ -28,9 +28,10 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.7"
       environment:
-            - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
+         - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
+         - POSTGRES_USER=${PGSQLPAM_USER}
       volumes:
-            - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+         - /var/lib/pgsqlpam:/var/lib/postgresql/data/
 
    pgadminpam:
       image: dpage/pgadmin4
@@ -38,14 +39,12 @@ services:
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:1"
-      ports:
-         - "${PMS3}:443:443"
       environment:
          - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
          - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
       depends_on:
          - pgsqlpam
-                  
+
    pam:
       image: cloudcix/pam:latest
       container_name: pam
@@ -82,7 +81,7 @@ services:
          - DB_NAME=${MYSQL_DATABASE}
          - DB_PASSWORD=${MYSQL_PASSWORD}
          - DB_USER=${MYSQL_USER}
-         
+
       depends_on:
          - mysql
 
@@ -184,6 +183,7 @@ services:
          - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
+         - LDAP_TLS=false
       volumes:
          - /data/slapd/membershipldap/database:/var/lib/ldap
          - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
@@ -319,6 +319,7 @@ services:
       container_name: iaas
       networks:
          mgmt:
+            ipv6_address: "${IP6}d0c:4004:3"
       environment:
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}

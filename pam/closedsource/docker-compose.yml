@@ -159,7 +159,7 @@ services:
    # Closedsource
    # ELK & Jaeger
    elasticsearch:
-      image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+      image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
       container_name: elasticsearch
       networks:
          mgmt:
@@ -176,11 +176,9 @@ services:
             hard: -1
       volumes:
          - /docker/elastic/data:/usr/share/elasticsearch/data
-      ports:
-         - 9200:9200
 
    kibana:
-      image: docker.elastic.co/kibana/kibana:7.13.4
+      image: docker.elastic.co/kibana/kibana:7.15.1
       container_name: kibana
       networks:
          mgmt:
@@ -190,19 +188,21 @@ services:
       environment:
          ELASTICSEARCH_URL: http://elasticsearch:9200
          ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      depends_on:
+        - elasticsearch
 
    logstash:
-      image: docker.elastic.co/logstash/logstash:7.13.4
+      image: docker.elastic.co/logstash/logstash:7.15.1
       container_name: logstash
       networks:
          mgmt:
       environment:
          - xpack.monitoring.enabled=true
          - xpack.monitoring.elasticsearch.url=http://elasticsearch:9200
-      ports:
-         - 9600:9600
       volumes:
          - /docker/logstash/conf:/usr/share/logstash/pipeline
+      depends_on:
+        - elasticsearch
    
    jaeger-collector:
       image: jaegertracing/jaeger-collector:latest
@@ -216,9 +216,6 @@ services:
          ES_NUM_REPLICAS: 0
          ES_NUM_SHARDS: 1
          ES_SERVER_URLS: http://elasticsearch:9200
-      ports:
-         - 14268:14268
-         - 9411:9411
       restart: on-failure
 
    jaeger:
@@ -231,9 +228,6 @@ services:
       environment:
          SPAN_STORAGE_TYPE: elasticsearch
          ES_SERVER_URLS: http://elasticsearch:9200
-      ports:
-         - 16685:16685
-         - 16686:16686
       restart: on-failure
 
    # Grafana
@@ -247,8 +241,6 @@ services:
          - INFLUXDB_DB=db0
          - INFLUXDB_ADMIN_USER=${INFLUXDB_USERNAME}
          - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD}
-      ports:
-         - '8086:8086'
       volumes:
          - influxdb-storage:/var/lib/influxdb
 
@@ -261,8 +253,6 @@ services:
       environment:
          - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN}
          - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PW}
-      ports:
-         - '3000:3000'
       volumes:
          - grafana-storage:/var/lib/grafana
          - ./grafana-provisioning/:/etc/grafana/provisioning

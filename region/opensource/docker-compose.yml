@@ -65,7 +65,7 @@ services:
 
    rabbitmq:
       image: rabbitmq
-      container_name: rabbitmq
+      container_name: rabbitmqregion
       hostname: rabbitmq
       networks:
         mgmt:

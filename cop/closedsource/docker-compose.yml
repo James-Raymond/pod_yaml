@@ -19,6 +19,7 @@ services:
          - LDAP_ADMIN_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - LDAP_DOMAIN=${ORGANIZATION_URL}
          - LDAP_ORGANISATION=${ORGANIZATION_URL}
+         - LDAP_TLS=false
       volumes:
          - /data/slapd/membershipldap/database:/var/lib/ldap
          - /data/slapd/membershipldap/config:/etc/ldap/slapd.d
@@ -78,6 +79,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
@@ -111,6 +113,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
@@ -144,6 +147,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       command: ['user_expiration_reminders']
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
@@ -154,6 +158,7 @@ services:
       container_name: iaas
       networks:
          mgmt:
+            ipv6_address: "${IP6}d0c:4004:3"
       environment:
          - CLOUDCIX_API_KEY=${CLOUDCIX_API_KEY}
          - CLOUDCIX_API_PASSWORD=${CLOUDCIX_API_PASSWORD}
@@ -171,6 +176,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
@@ -197,6 +203,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
@@ -227,6 +234,7 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
+         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:4"
@@ -279,6 +287,14 @@ services:
          - membershipldap
          - otp
          - pgsqlapi
+
+   jaeger:
+      image: jaegertracing/jaeger-agent:latest
+      container_name: jaeger-agent
+      command: ["--reporter.grpc.host-port=collector.${PAM_NAME}.${PAM_ORGANIZATION_URL}:14250"]
+      networks:
+         mgmt:
+      restart: on-failure
 
    nginxcop:
       image: nginx:1.19.2-alpine

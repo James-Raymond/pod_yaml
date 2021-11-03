@@ -73,7 +73,7 @@ server {
 }
 
 upstream logstash {
-    server logstash:9600;
+    server logstash:5959;
     }
 
 server {
