@@ -34,6 +34,8 @@ services:
          - SEND_TO_FAIL=${SEND_TO_FAIL}
       volumes:
          - /home/administrator/celerybeat:/opt/robot/celerybeat
+         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
+         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
       entrypoint: supervisord
 
    robotworker:
