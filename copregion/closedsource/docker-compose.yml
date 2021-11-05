@@ -337,6 +337,7 @@ services:
          - ROBOT_API_KEY=${ROBOT_API_KEY}
          - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
          - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - SEND_TO_FAIL=${SEND_TO_FAIL}
       volumes:
          - /home/administrator/celerybeat:/opt/robot/celerybeat
       entrypoint: supervisord
@@ -360,6 +361,7 @@ services:
          - ROBOT_API_KEY=${ROBOT_API_KEY}
          - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
          - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
+         - SEND_TO_FAIL=${SEND_TO_FAIL}
       volumes:
          - /etc/cloudcix/robot:/mnt/images
          - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
