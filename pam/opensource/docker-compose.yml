@@ -61,6 +61,7 @@ services:
          - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
       volumes:
          - pam_static_volume:/app/_static
+         - /etc/cloudcix/docker/pod_ssh:/pod_ssh
          - /etc/cloudcix/docker/ssl_certs:/ssl_certs
          - /home/administrator/.ssh/id_rsa_0:/root/.ssh/id_rsa
          - /home/administrator/.ssh/id_rsa_0.pub:/root/.ssh/id_rsa.pub
