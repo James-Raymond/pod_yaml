@@ -75,7 +75,6 @@ services:
       container_name: mysqllibrenms
       networks:
          mgmt:
-            ipv6_address: "${IP6}d0c:3001:5"
       environment:
          - MYSQL_DATABASE=librenms
          - MYSQL_PASSWORD=${MYSQLLIBRENMS_PASSWORD}
@@ -106,7 +105,6 @@ services:
       container_name: mysqlradius
       networks:
          mgmt:
-            ipv6_address: "${IP6}d0c:3001:6"
       environment:
          - MYSQL_DATABASE=radius
          - MYSQL_PASSWORD=${MYSQLRADIUS_PASSWORD}
