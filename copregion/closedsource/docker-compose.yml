@@ -81,8 +81,8 @@ services:
          - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
          - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
@@ -113,8 +113,8 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQLTOTP_PASSWORD=${PGSQLTOTP_PASSWORD}
@@ -149,8 +149,8 @@ services:
          - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
          - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
@@ -178,8 +178,8 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
@@ -205,8 +205,8 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
@@ -236,8 +236,8 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
@@ -301,10 +301,30 @@ services:
    jaeger:
       image: jaegertracing/jaeger-agent:latest
       container_name: jaeger-agent
-      command: ["--reporter.grpc.host-port=collector.${PAM_NAME}.${PAM_ORGANIZATION_URL}:14250"]
+      command: ["--reporter.grpc.host-port=collector.${MAP_NAME}.${MAP_ORGANIZATION_URL}:14250"]
       networks:
          mgmt:
       restart: on-failure
+
+   # Pit - Icarus metric gatherer
+   pit:
+      image: cloudcix/pit:latest
+      container_name: pit
+      environment:
+         ICARUS_EMAIL: ${CLOUDCIX_API_USERNAME}
+         ICARUS_PASSWORD: ${CLOUDCIX_API_PASSWORD}
+         ICARUS_API_KEY: ${CLOUDCIX_API_KEY}
+         ICARUS_API_URL: ${POD_NAME}.${ORGANIZATION_URL}
+      network_mode: "host"
+      healthcheck:
+         test: ["CMD", "curl", "-f", "http://localhost:50003"]
+         interval: 10s
+         timeout: 5s
+         retries: 5
+      depends_on:
+         - membership
+         - iaas
+         - nginxcop
 
    nginxcop:
       image: nginx:1.19.2-alpine
@@ -345,8 +365,8 @@ services:
          - EMAIL_PORT=${REGION_EMAIL_PORT}
          - EMAIL_USER=${REGION_EMAIL_USER}
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - MAP_NAME=${REGION_MAP_NAME}
+         - MAP_ORGANIZATION_URL=${REGION_MAP_ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - ROBOT_API_KEY=${ROBOT_API_KEY}
@@ -371,8 +391,8 @@ services:
          - EMAIL_PORT=${REGION_EMAIL_PORT}
          - EMAIL_USER=${REGION_EMAIL_USER}
          - NETWORK_PASSWORD=${NETWORK_PASSWORD}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
+         - MAP_NAME=${REGION_MAP_NAME}
+         - MAP_ORGANIZATION_URL=${REGION_MAP_ORGANIZATION_URL}
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
          - ROBOT_API_KEY=${ROBOT_API_KEY}
