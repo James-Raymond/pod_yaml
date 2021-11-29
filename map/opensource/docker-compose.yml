@@ -19,54 +19,54 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-   pgsqlpam:
-      image: cloudcix/pgsqlpam:latest
-      container_name: pgsqlpam
+   pgsqlmap:
+      image: cloudcix/pgsqlmap:latest
+      container_name: pgsqlmap
       networks:
          mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.7"
       environment:
-         - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
-         - POSTGRES_USER=${PGSQLPAM_USER}
+         - POSTGRES_PASSWORD=${PGSQLMAP_PASSWORD}
+         - POSTGRES_USER=${PGSQLMAP_USER}
       volumes:
-         - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+         - /var/lib/pgsqlmap:/var/lib/postgresql/data/
 
-   pgadminpam:
+   pgadminmap:
       image: dpage/pgadmin4
-      container_name: pgadminpam
+      container_name: pgadminmap
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:1"
       environment:
-         - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
-         - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
+         - PGADMIN_DEFAULT_EMAIL=${PGADMINMAP_EMAIL}
+         - PGADMIN_DEFAULT_PASSWORD=${PGADMINMAP_PASSWORD}
       depends_on:
-         - pgsqlpam
+         - pgsqlmap
 
-   pam:
-      image: cloudcix/pam:latest
-      container_name: pam
+   map:
+      image: cloudcix/map:latest
+      container_name: map
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:4"
          oob:
             ipv4_address: "10.${pod_id}.0.6"
       environment:
-         - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
-         - PGSQLPAM_USER=${PGSQLPAM_USER}
+         - PGSQLMAP_PASSWORD=${PGSQLMAP_PASSWORD}
+         - PGSQLMAP_USER=${PGSQLMAP_USER}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
          - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
-         - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
+         - VPN_MAP_PUBLIC_ADDRESS=${VPN_MAP_PUBLIC_ADDRESS}
       volumes:
-         - pam_static_volume:/app/_static
+         - map_static_volume:/app/_static
          - /etc/cloudcix/docker/pod_ssh:/pod_ssh
          - /etc/cloudcix/docker/ssl_certs:/ssl_certs
          - /home/administrator/.ssh/id_rsa_0:/root/.ssh/id_rsa
          - /home/administrator/.ssh/id_rsa_0.pub:/root/.ssh/id_rsa.pub
       depends_on:
-         - pgsqlpam
+         - pgsqlmap
       restart: on-failure
 
    mysqllibrenms:
@@ -99,24 +99,8 @@ services:
       depends_on:
          - mysqllibrenms
 
-   mysqlradius:
-      image: mysql
-      container_name: mysqlradius
-      networks:
-         mgmt:
-      environment:
-         - MYSQL_DATABASE=radius
-         - MYSQL_PASSWORD=${MYSQLRADIUS_PASSWORD}
-         - MYSQL_ROOT_PASSWORD=${MYSQLRADIUS_ROOT_PASSWORD}
-         - MYSQL_USER=${MYSQLRADIUS_USER}
-      volumes:
-         - "/etc/cloudcix/docker/radius/data:/var/lib/mysql"
-         - "/etc/cloudcix/docker/radius/radius.sql:/docker-entrypoint-initdb.d/radius.sql"
-      command: --default-authentication-plugin=mysql_native_password
-      restart: always
-
    radius:
-      image: 2stacks/freeradius
+      image: asdaru/freeradius-mysql-daloradius:latest
       container_name: radius
       networks:
          mgmt:
@@ -124,16 +108,14 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.3"
       environment:
-         - DB_HOST=mysqlradius
-         - DB_NAME=radius
-         - DB_PASS=${MYSQLRADIUS_PASSWORD}
-         - DB_USER=${MYSQLRADIUS_USER}
-         - RAD_CLIENTS=10.0.0.0/8
-         - RADIUS_KEY=${RADIUS_SECRET_KEY}
-      depends_on:
-         - mysqlradius
-      links:
-         - mysqlradius
+         - CLIENT_SECRET=${RADIUS_SECRET_KEY}
+         - CLIENT_NET=10.0.0.0/8
+         - RADIUS_DB_PWD=${MYSQLRADIUS_PASSWORD}
+         - RADIUS_DB_ROOT_PWD=${MYSQLRADIUS_ROOT_PASSWORD}
+         - RADIUS_DB_SERVER=mysqlradius
+         - RADIUS_DB_USER=${MYSQLRADIUS_USER}
+      volumes:
+         - "radius-data:/etc/freeradius"
       restart: always
 
    mysql-workbench:
@@ -169,9 +151,9 @@ services:
       restart: always
 
    # NGINX
-   nginxpam:
+   nginxmap:
       image: nginx:1.19.2-alpine
-      container_name: nginxpam
+      container_name: nginxmap
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3004:a"
@@ -179,13 +161,14 @@ services:
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
       volumes:
-         - ./templates/pam:/etc/nginx/templates
+         - ./templates/map:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/app/_static
+         - map_static_volume:/app/_static
       depends_on:
-         - pam
+         - map
 
 volumes:
-   # pam volumes
-   pam_static_volume:
+   # map volumes
+   map_static_volume:
+   radius-data:
       

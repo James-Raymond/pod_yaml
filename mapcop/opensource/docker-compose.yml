@@ -19,55 +19,55 @@ networks:
               gateway: "10.${pod_id}.0.1"
 
 services:
-   # pam containers
-   pgsqlpam:
-      image: cloudcix/pgsqlpam:latest
-      container_name: pgsqlpam
+   # map containers
+   pgsqlmap:
+      image: cloudcix/pgsqlmap:latest
+      container_name: pgsqlmap
       networks:
          mgmt:
          oob:
             ipv4_address: "10.${pod_id}.0.7"
       environment:
-         - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
-         - POSTGRES_USER=${PGSQLPAM_USER}
+         - POSTGRES_PASSWORD=${PGSQLMAP_PASSWORD}
+         - POSTGRES_USER=${PGSQLMAP_USER}
       volumes:
-         - /var/lib/pgsqlpam:/var/lib/postgresql/data/
+         - /var/lib/pgsqlmap:/var/lib/postgresql/data/
 
-   pgadminpam:
+   pgadminmap:
       image: dpage/pgadmin4
-      container_name: pgadminpam
+      container_name: pgadminmap
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:1"
       environment:
-         - PGADMIN_DEFAULT_EMAIL=${PGADMINPAM_EMAIL}
-         - PGADMIN_DEFAULT_PASSWORD=${PGADMINPAM_PASSWORD}
+         - PGADMIN_DEFAULT_EMAIL=${PGADMINMAP_EMAIL}
+         - PGADMIN_DEFAULT_PASSWORD=${PGADMINMAP_PASSWORD}
       depends_on:
-         - pgsqlpam
+         - pgsqlmap
 
-   pam:
-      image: cloudcix/pam:latest
-      container_name: pam
+   map:
+      image: cloudcix/map:latest
+      container_name: map
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3002:4"
          oob:
             ipv4_address: "10.${pod_id}.0.6"
       environment:
-         - PGSQLPAM_PASSWORD=${PGSQLPAM_PASSWORD}
-         - PGSQLPAM_USER=${PGSQLPAM_USER}
+         - PGSQLMAP_PASSWORD=${PGSQLMAP_PASSWORD}
+         - PGSQLMAP_USER=${PGSQLMAP_USER}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - ROUTER_MANAGEMENT_IP=${ROUTER_MANAGEMENT_IP}
          - ROUTER_PUBLIC_INTERFACE=${ROUTER_PUBLIC_INTERFACE}
-         - VPN_PAM_PUBLIC_ADDRESS=${VPN_PAM_PUBLIC_ADDRESS}
+         - VPN_MAP_PUBLIC_ADDRESS=${VPN_MAP_PUBLIC_ADDRESS}
       volumes:
-         - pam_static_volume:/app/_static
+         - map_static_volume:/app/_static
          - /etc/cloudcix/docker/pod_ssh:/pod_ssh
          - /etc/cloudcix/docker/ssl_certs:/ssl_certs
          - /home/administrator/.ssh/id_rsa_0:/root/.ssh/id_rsa
          - /home/administrator/.ssh/id_rsa_0.pub:/root/.ssh/id_rsa.pub
       depends_on:
-         - pgsqlpam
+         - pgsqlmap
       restart: on-failure
 
    mysqllibrenms:
@@ -100,24 +100,8 @@ services:
       depends_on:
          - mysqllibrenms
 
-   mysqlradius:
-      image: mysql
-      container_name: mysqlradius
-      networks:
-         mgmt:
-      environment:
-         - MYSQL_DATABASE=radius
-         - MYSQL_PASSWORD=${MYSQLRADIUS_PASSWORD}
-         - MYSQL_ROOT_PASSWORD=${MYSQLRADIUS_ROOT_PASSWORD}
-         - MYSQL_USER=${MYSQLRADIUS_USER}
-      volumes:
-         - "/etc/cloudcix/docker/radius/data:/var/lib/mysql"
-         - "/etc/cloudcix/docker/radius/radius.sql:/docker-entrypoint-initdb.d/radius.sql"
-      command: --default-authentication-plugin=mysql_native_password
-      restart: always
-
    radius:
-      image: 2stacks/freeradius
+      image: asdaru/freeradius-mysql-daloradius:latest
       container_name: radius
       networks:
          mgmt:
@@ -125,16 +109,14 @@ services:
          oob:
             ipv4_address: "10.${pod_id}.0.3"
       environment:
-         - DB_HOST=mysqlradius
-         - DB_NAME=radius
-         - DB_PASS=${MYSQLRADIUS_PASSWORD}
-         - DB_USER=${MYSQLRADIUS_USER}
-         - RAD_CLIENTS=10.0.0.0/8
-         - RADIUS_KEY=${RADIUS_SECRET_KEY}
-      depends_on:
-         - mysqlradius
-      links:
-         - mysqlradius
+         - CLIENT_SECRET=${RADIUS_SECRET_KEY}
+         - CLIENT_NET=10.0.0.0/8
+         - RADIUS_DB_PWD=${MYSQLRADIUS_PASSWORD}
+         - RADIUS_DB_ROOT_PWD=${MYSQLRADIUS_ROOT_PASSWORD}
+         - RADIUS_DB_SERVER=mysqlradius
+         - RADIUS_DB_USER=${MYSQLRADIUS_USER}
+      volumes:
+         - "radius-data:/etc/freeradius"
       restart: always
 
    mysql-workbench:
@@ -169,150 +151,10 @@ services:
          - VNC_PASSWORD=${JUMPHOST_VNC_PASSWORD}
       restart: always
 
-   # Closedsource
-   # ELK & Jaeger
-   elasticsearch:
-      image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
-      container_name: elasticsearch
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3001:2"
-      environment:
-         - cluster.name=docker-cluster
-         - bootstrap.memory_lock=true
-         - discovery.type=single-node
-         - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-         - MAX_MAP_COUNT=262144
-      ulimits:
-         memlock:
-            soft: -1
-            hard: -1
-      volumes:
-         - /docker/elastic/data:/usr/share/elasticsearch/data
-
-   kibana:
-      image: docker.elastic.co/kibana/kibana:7.15.1
-      container_name: kibana
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:9"
-      ports:
-         - 5601:5601
-      environment:
-         ELASTICSEARCH_URL: http://elasticsearch:9200
-         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-      depends_on:
-        - elasticsearch
-
-   logstash:
-      image: docker.elastic.co/logstash/logstash:7.15.1
-      container_name: logstash
-      networks:
-         mgmt:
-      environment:
-         - xpack.monitoring.enabled=true
-         - xpack.monitoring.elasticsearch.url=http://elasticsearch:9200
-      volumes:
-         - /docker/logstash/conf:/usr/share/logstash/pipeline
-      depends_on:
-        - elasticsearch
-   
-   jaeger-collector:
-      image: jaegertracing/jaeger-collector:latest
-      container_name: jaeger-collector
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3003:2"
-      command: []
-      environment:
-         SPAN_STORAGE_TYPE: elasticsearch
-         ES_NUM_REPLICAS: 0
-         ES_NUM_SHARDS: 1
-         ES_SERVER_URLS: http://elasticsearch:9200
-      restart: on-failure
-
-   jaeger:
-      image: jaegertracing/jaeger-query:latest
-      container_name: jaeger
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:10"
-      command: []
-      environment:
-         SPAN_STORAGE_TYPE: elasticsearch
-         ES_SERVER_URLS: http://elasticsearch:9200
-      restart: on-failure
-
-   # Grafana
-   influxdb:
-      image: influxdb:latest
-      container_name: influxdb
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3003:1"
-      environment:
-         - INFLUXDB_DB=db0
-         - INFLUXDB_ADMIN_USER=${INFLUXDB_USERNAME}
-         - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD}
-      volumes:
-         - influxdb-storage:/var/lib/influxdb
-
-   grafana:
-      image: grafana/grafana:latest
-      container_name: grafana
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:8"
-      environment:
-         - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN}
-         - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PW}
-      volumes:
-         - grafana-storage:/var/lib/grafana
-         - ./grafana-provisioning/:/etc/grafana/provisioning
-      depends_on:
-         - influxdb
-
-   # Icarus
-   daedalus:
-      image: cloudcix/daedalus:latest
-      container_name: daedalus
-      depends_on:
-         - pgsqlpam
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:7"
-      environment:
-         - POSTGRES_PASSWORD=${PGSQLPAM_PASSWORD}
-         - POSTGRES_USER=${PGSQLPAM_USER}
-         - POD_SECRET_KEY=${POD_SECRET_KEY}
-      healthcheck:
-         test: ["CMD", "curl", "-f", "http://localhost/regions/"]
-         interval: 10s
-         timeout: 5s
-         retries: 5
-
-   majora:
-      image: cloudcix/majora:latest
-      container_name: majora
-      networks:
-         mgmt:
-      depends_on:
-         - daedalus
-         - nginxpam
-
-   icarus:
-      image: cloudcix/icarus:latest
-      container_name: icarus
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:3002:6"
-      depends_on:
-         - daedalus
-
    # NGINX
-   nginxpam:
+   nginxmap:
       image: nginx:1.19.2-alpine
-      container_name: nginxpam
+      container_name: nginxmap
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:3004:a"
@@ -320,19 +162,11 @@ services:
          - POD_NAME=${POD_NAME}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
       volumes:
-         - ./templates/pam:/etc/nginx/templates
+         - ./templates/map:/etc/nginx/templates
          - /etc/nginx/certs:/etc/nginx/certs
-         - pam_static_volume:/app/_static
+         - map_static_volume:/app/_static
       depends_on:
-         - daedalus
-         - elasticsearch
-         - grafana
-         - icarus
-         - influxdb
-         - jaeger
-         - kibana
-         - logstash
-         - pam
+         - map
 
    # cop containers
    membershipldap:
@@ -396,15 +230,14 @@ services:
          - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
          - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:1"
@@ -428,8 +261,8 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - PGSQLTOTP_PASSWORD=${PGSQLTOTP_PASSWORD}
@@ -438,7 +271,6 @@ services:
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:2"
@@ -464,15 +296,14 @@ services:
          - MEMBERSHIPLDAP_DC=${MEMBERSHIPLDAP_DC}
          - MEMBERSHIPLDAP_PASSWORD=${MEMBERSHIPLDAP_PASSWORD}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       command: ['user_expiration_reminders']
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}:/application_framework/private-key.rsa
@@ -493,21 +324,20 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       volumes:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/application_framework/public-key.rsa
       restart: on-failure
       depends_on:
          - pgsqlapi
-            
+         
    appmanager:
       image: cloudcix/appmanager:latest
       container_name: appmanager
@@ -520,15 +350,14 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:4004:4"
@@ -551,15 +380,14 @@ services:
          - EMAIL_PORT=${COP_EMAIL_PORT}
          - EMAIL_USER=${COP_EMAIL_USER}
          - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - PAM_NAME=${PAM_NAME}
-         - PAM_ORGANIZATION_URL=${PAM_ORGANIZATION_URL}
+         - MAP_NAME=${MAP_NAME}
+         - MAP_ORGANIZATION_URL=${MAP_ORGANIZATION_URL}
          - PGSQL_PASSWORD=${PGSQLAPI_PASSWORD}
          - PGSQL_USER=${PGSQLAPI_USER}
          - POD_NAME=${POD_NAME}
          - POD_SECRET_KEY=${POD_SECRET_KEY}
          - PORTAL_NAME=${PORTAL_NAME}
          - RELEASE=stable
-         - SENTRY_URL=${SENTRY_URL}
       networks:
          mgmt:
             ipv6_address: "${IP6}d0c:5002:4"
@@ -567,7 +395,7 @@ services:
          - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/app_framework/system_conf/public-key.rsa
          - cop_static_content:/static
       restart: on-failure
-      
+
    apachedscop:
       image: tgbyte/apacheds:latest
       container_name: apachedscop
@@ -613,14 +441,6 @@ services:
          - otp
          - pgsqlapi
 
-   jaeger:
-      image: jaegertracing/jaeger-agent:latest
-      container_name: jaeger-agent
-      command: ["--reporter.grpc.host-port=collector.${PAM_NAME}.${PAM_ORGANIZATION_URL}:14250"]
-      networks:
-         mgmt:
-      restart: on-failure
-
    nginxcop:
       image: nginx:1.19.2-alpine
       container_name: nginxcop
@@ -645,83 +465,9 @@ services:
          - appmanager
          - cop
 
-   # region containers
-   robot:
-      image: cloudcix/robot:latest
-      container_name: robot
-      networks:
-         mgmt:
-      environment:
-         - COP_NAME=${COP_NAME}
-         - COP_ORGANIZATION_URL=${COP_ORGANIZATION_URL}
-         - COP_PORTAL=${COP_PORTAL}
-         - EMAIL_HOST=${REGION_EMAIL_HOST}
-         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
-         - EMAIL_PORT=${REGION_EMAIL_PORT}
-         - EMAIL_USER=${REGION_EMAIL_USER}
-         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - ROBOT_API_KEY=${ROBOT_API_KEY}
-         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
-         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - SEND_TO_FAIL=${SEND_TO_FAIL}
-      volumes:
-         - /home/administrator/celerybeat:/opt/robot/celerybeat
-         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
-         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
-      entrypoint: supervisord
-
-   robotworker:
-      image: cloudcix/robot:latest
-      container_name: robotworker
-      environment:
-         - COP_NAME=${COP_NAME}
-         - COP_ORGANIZATION_URL=${COP_ORGANIZATION_URL}
-         - COP_PORTAL=${COP_PORTAL}
-         - EMAIL_HOST=${REGION_EMAIL_HOST}
-         - EMAIL_PASSWORD=${REGION_EMAIL_PASSWORD}
-         - EMAIL_PORT=${REGION_EMAIL_PORT}
-         - EMAIL_USER=${REGION_EMAIL_USER}
-         - NETWORK_PASSWORD=${NETWORK_PASSWORD}
-         - PAM_NAME=${REGION_PAM_NAME}
-         - PAM_ORGANIZATION_URL=${REGION_PAM_ORGANIZATION_URL}
-         - POD_NAME=${POD_NAME}
-         - ORGANIZATION_URL=${ORGANIZATION_URL}
-         - ROBOT_API_KEY=${ROBOT_API_KEY}
-         - ROBOT_API_PASSWORD=${ROBOT_API_PASSWORD}
-         - ROBOT_API_USERNAME=${ROBOT_API_USERNAME}
-         - SEND_TO_FAIL=${SEND_TO_FAIL}
-      volumes:
-         - /etc/cloudcix/robot:/mnt/images
-         - /home/administrator/.ssh/id_rsa_${pod_id}:/root/.ssh/id_rsa
-         - /home/administrator/.ssh/id_rsa_${pod_id}.pub:/root/.ssh/id_rsa.pub
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:6001:1"
-      entrypoint: celery -A celery_app -l info worker -Q celery -O fair -n ${POD_NAME} --concurrency 25
-
-   rabbitmq:
-      image: rabbitmq
-      container_name: rabbitmqregion
-      hostname: rabbitmq
-      networks:
-        mgmt:
-
-   flower:
-      image: mher/flower:0.9.5
-      container_name: flowerregion
-      networks:
-         mgmt:
-            ipv6_address: "${IP6}d0c:6002:4"
-      ports:
-         - "${PMS6}:5555:5555"
-      entrypoint: flower --port=5555 --broker=amqp://rabbitmq:5672/
-
 volumes:
-   # pam volumes
-   pam_static_volume:
+   # map volumes
+   map_static_volume:
+   radius-data:
    # cop volumes
    cop_static_content:
